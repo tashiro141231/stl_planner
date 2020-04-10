@@ -1,0 +1,15 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="map_file" default="$(find stl_planner)/maps/map.yaml"/>
+
+  <!-- statically connect map and odom -->
+  <node pkg="tf" type="static_transform_publisher" name="map_odom_connector" args="1 0 0 0 0 0 map odom 100" />
+  <!-- move_base -->
+  <node pkg="stl_planner" name="state_machine" type="state_machine" output="screen">
+    <rosparam command="load" file="$(find stl_planner)/config/stl_planner_config.yaml"/>
+  </node>
+
+  <!-- Map server -->
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+
+</launch>

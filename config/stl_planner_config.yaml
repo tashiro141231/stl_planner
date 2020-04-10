@@ -1,0 +1,8 @@
+global_frame: "map"
+base_frame: "odom"
+goal_topic_name: "move_base_simple/goal"
+loop_rate: 20
+vel_stop_theshhold: 0
+omega_stop_theshhold: 0
+robot_width: 0.5
+robot_length: 0.8

@@ -27,12 +27,12 @@ RobotStatus StateMachine::getCurrentState() {
   return current_state_;
 }
 
-void StateMachine::setMap(int width, int height, unsigned char* data) {
+void StateMachine::setMap(int width, int height, Point centre,unsigned char* data) {
   map_ = data;
   m_width_ = width;
   m_height_ = height;
 
-  gp.setMap(width, height, data);
+  gp.setMap(width, height, centre, data);
 }
 
 void StateMachine::setCostmap(int width, int height, unsigned char* data) {

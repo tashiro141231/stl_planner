@@ -42,42 +42,62 @@ void GPlanner::calc_path(){
   */
 }
 
-int GPlanner::calc_ind(int x,int y){
-    return this->max_xind*y+x;
+void GPlanner::calc_path_astar() {
+  bool findFlag=false;
 }
 
-std::vector<Node> GPlanner::rawmap_to_node(unsigned char* map) {
+
+int GPlanner::calc_ind(int x,int y){
+    return max_xind*y + x;
+}
+
+std::vector<Node> GPlanner::rawmap_to_node(Point centre, unsigned char* map) {
   std::vector<Node> g_map;
   Node buff;
-  buff.searched = false;
-  for(int itr = 0; itr < this->width*this->height; itr++) {
-    buff.cost = map[itr];
-    g_map.push_back(buff);
+
+  //FILE *gid;
+  //if((gid = popen("gnuplot", "w")) == NULL) std::cout << "gnuplot open error" << std::endl;
+  //fprintf(gid, "plot '-'\n");
+
+  for(int itr = 0; itr < width_*height_; itr++) {
+    if(map[itr] != 0xFF && map[itr] != 0x00) {
+      buff.cost = map[itr];
+      buff.x = (int)-(width_/2) + (int)(itr % max_x_)  + (int)centre.x;
+      buff.y = (int)height_/2  - (int)centre.y - (int)(itr / max_x_);
+      //std::cout << "x,y : " << buff.x << " " << buff.y << std::endl; 
+      g_map.push_back(buff);
+
+      //fprintf(gid, "%lf, %lf\n", (float)buff.x, (float)buff.y);
+    }
   }
+  //fprintf(gid, "e\n");
+  //fflush(gid);
+  //getchar();
+  //fprintf(gid, "pause -l");
+  //pclose(gid);
   return g_map;
 }
 
 void GPlanner::setStartPoint(Point start) {
-  sx = start.x;
-  sy = start.y;
+  start_ = start;
 }
 
 void GPlanner::setGoalPoint(Point goal) {
-  gx = goal.x;
-  gy = goal.y;
+  goal_ = goal;
 }
 
 void GPlanner::setStartGoal(Point start, Point goal) {
-  sx = start.x;
-  sy = start.y;
-  gx = goal.x;
-  gy = goal.y;
+  start_ = start;
+  goal_ = goal;
 }
 
-void GPlanner::setMap(int width, int height, unsigned char* map) {
-  this->width = width;
-  this->height = height;
-  this->origin_map = rawmap_to_node(map);
+void GPlanner::setMap(int width, int height, Point centre, unsigned char* map) {
+  width_ = width;
+  height_ = height;
+  max_x_ = width;
+  max_y_ = height;
+
+  origin_map = rawmap_to_node(centre, map);
 }
 
 

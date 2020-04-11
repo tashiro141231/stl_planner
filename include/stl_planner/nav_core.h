@@ -24,7 +24,8 @@ typedef struct Point {
 
 typedef struct Node{
     unsigned char cost;
-    bool searched;
+    int x;
+    int y;
 } Node;
 
 #endif

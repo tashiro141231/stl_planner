@@ -48,8 +48,12 @@ void StateMachineROS::Initialize()
 //------------- Callback -------------------//
 void StateMachineROS::MapLoadCallback(const nav_msgs::OccupancyGrid msg) {
   unsigned char* data = map_to_raw(msg); 
+  Point centre;
+  centre.x = msg.info.origin.position.x;
+  centre.y = msg.info.origin.position.y;
+  centre.theta = 0;
 
-  sm_.setMap(msg.info.width,msg.info.height, data);
+  sm_.setMap(msg.info.width,msg.info.height, centre,data);
 }
 
 void StateMachineROS::CostmapLoadCallback(const nav_msgs::OccupancyGrid msg) {
@@ -79,7 +83,6 @@ void StateMachineROS::UpdateCurrentPosition(){
 }
 
 void StateMachineROS::WaypointCallback(geometry_msgs::PoseStamped msg) {
-  ROS_INFO("Hello hello");
   nav_msgs::Path p = CalcGlobalPlan(msg);
 
   PubGlobalPath(p);

@@ -23,7 +23,7 @@ class StateMachine {
     //setter
     void setCurrentPosition(double x, double y, double theta);
     void setGoalPosition(double x, double y, double theta);
-    void setMap(int width, int height, unsigned char* data);
+    void setMap(int width, int height, Point centre, unsigned char* data);
     void setCostmap(int width, int height, unsigned char* data);
     //getter
     RobotStatus getCurrentState();

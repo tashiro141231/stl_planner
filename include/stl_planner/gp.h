@@ -33,7 +33,6 @@ class GPlanner{
         double max_x,max_y,min_x,min_y;   //mapの
         int max_xind,max_yind;            //indexの最大
         std::vector<Point> path;
-        std::vector<Node> origin_map;
         GPlanner();
         void Initialize(double _sx,double _sy,double _gx,double _gy, 
         int _width, int _height , double _resolution, unsigned char *_cost){
@@ -44,12 +43,17 @@ class GPlanner{
             width_ = _width;
             height_ = _height;
             resolution_ = _resolution;
+            Init_robotmodel();
             //calc_map(map_x,map_y,cost);
             //vector<Node> _grid(calc_ind(max_xind,max_yind));
             //grid.insert(grid.end(),_grid.begin(),_grid.end());
         }
         ~GPlanner(){
         }
+        void Init_robotmodel();
+        bool isSamePoint(Point start, Point goal);
+        bool isObstacle(Point p);
+        double calc_heuristic(Point p1, Point p2);
         int calc_ind(int x, int y);
         void calc_map(std::vector<double> map_x, std::vector<double> map_y, std::vector<int> cost);
         void map_init();
@@ -57,6 +61,8 @@ class GPlanner{
         void calc_path();
         void calc_path_astar();
         std::vector<Node> rawmap_to_node(Point centre, unsigned char* map);
+        void sortPointCost(std::vector<std::pair<Point, Point> >& open);
+        void checkLists(std::pair<Point, Point> node, std::vector<std::pair<Point, Point> >& open, std::vector<std::pair<Point, Point> >& close);
 
         //setter
         void setStartPoint(Point start);
@@ -66,6 +72,8 @@ class GPlanner{
         //getter
         Node getCostOrigin(int x, int y);
         std::vector<Point> getPath();
+        Point createpoint(int x, int y);
+        Point createpoint_cost(int x, int y, double cost);
     private:
         Point start_;
         Point goal_;
@@ -75,5 +83,7 @@ class GPlanner{
         double resolution_;
         int max_x_;
         int max_y_;
+        std::vector<Point> robot_model_;
+        std::vector<Node> o_map_;
 };
 

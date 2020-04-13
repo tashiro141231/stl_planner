@@ -21,16 +21,21 @@ void StateMachine::setCurrentPosition(double x, double y, double theta) {
   current_pos_.x = x;
   current_pos_.y = y;
   current_pos_.theta = theta;
+  Point p;
+  p.x = x;
+  p.y = y;
+  gp.setStartPoint(ConvGridPoint(p));
 }
 
 RobotStatus StateMachine::getCurrentState() {
   return current_state_;
 }
 
-void StateMachine::setMap(int width, int height, Point centre,unsigned char* data) {
+void StateMachine::setMap(int width, int height, double map_resolution, Point centre,unsigned char* data) {
   map_ = data;
   m_width_ = width;
   m_height_ = height;
+  resolution_ = map_resolution;
 
   gp.setMap(width, height, centre, data);
 }
@@ -45,15 +50,25 @@ std::vector<Point> StateMachine::CalcGlobalPlan(double x, double y, double theta
   Point goal;
   goal.x = x;
   goal.y = y;
-  gp.setGoalPoint(goal);
-  gp.calc_path();
+  gp.setGoalPoint(ConvGridPoint(goal));
+  //gp.calc_path();
+  gp.calc_path_astar();
   return gp.getPath();
   // 現在の自己位置を更新してGプラン
 }
 
 std::vector<Point> StateMachine::DebagCalcGlobalPlan(Point start, Point goal) {
-  gp.setStartGoal(start, goal);
+  
+  gp.setStartGoal(ConvGridPoint(start), ConvGridPoint(goal));
   gp.calc_path();
   return gp.getPath();
 }
+
+Point StateMachine::ConvGridPoint(Point point) {
+  Point grid_point;
+  grid_point.x = (int)(point.x / resolution_);
+  grid_point.y = (int)(point.y / resolution_);
+  return grid_point;
+}
+
 

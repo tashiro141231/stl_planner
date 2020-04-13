@@ -23,7 +23,7 @@ class StateMachine {
     //setter
     void setCurrentPosition(double x, double y, double theta);
     void setGoalPosition(double x, double y, double theta);
-    void setMap(int width, int height, Point centre, unsigned char* data);
+    void setMap(int width, int height, double map_resolution, Point centre, unsigned char* data);
     void setCostmap(int width, int height, unsigned char* data);
     //getter
     RobotStatus getCurrentState();
@@ -32,6 +32,7 @@ class StateMachine {
     std::vector<Point> CalcGlobalPlan(double x, double y, double theta);
     std::vector<Point> DebagCalcGlobalPlan(Point start, Point goal);
 
+    Point ConvGridPoint(Point point);
 
   private:
     GPlanner gp;

@@ -53,7 +53,7 @@ void StateMachineROS::MapLoadCallback(const nav_msgs::OccupancyGrid msg) {
   centre.y = msg.info.origin.position.y;
   centre.theta = 0;
 
-  sm_.setMap(msg.info.width,msg.info.height, centre,data);
+  sm_.setMap(msg.info.width,msg.info.height, msg.info.resolution,centre,data);
 }
 
 void StateMachineROS::CostmapLoadCallback(const nav_msgs::OccupancyGrid msg) {

@@ -4,7 +4,7 @@
 
   <!-- statically connect map and odom -->
   <node pkg="tf" type="static_transform_publisher" name="map_odom_connector" args="0 0 0 0 0 0 map odom 100" />
-  <!-- move_base -->
+  
   <node pkg="stl_planner" name="state_machine" type="state_machine" output="screen">
     <rosparam command="load" file="$(find stl_planner)/config/stl_planner_config.yaml"/>
   </node>

@@ -60,20 +60,23 @@ class GPlanner{
         Point calc_position(int index,int min);  
         void calc_path();
         void calc_path_astar();
-        std::vector<Node> rawmap_to_node(Point centre, unsigned char* map);
+        std::vector<Node> rawmap_to_node(Point lower_left, unsigned char* map);
         void sortPointCost(std::vector<std::pair<Point, Point> >& open);
         void checkLists(std::pair<Point, Point> node, std::vector<std::pair<Point, Point> >& open, std::vector<std::pair<Point, Point> >& close);
+        std::vector<Point> lookup_closednode(std::vector<std::pair<Point, Point> >& close);
+        void visualize_result(std::vector<Point> path, std::vector<std::pair<Point, Point> > close);
 
         //setter
         void setStartPoint(Point start);
         void setGoalPoint(Point goal);
         void setStartGoal(Point start, Point goal);
-        void setMap(int width, int height, Point centre, unsigned char *map);
+        void setMap(int width, int height, Point lower_left, unsigned char *map);
         //getter
         Node getCostOrigin(int x, int y);
         std::vector<Point> getPath();
         Point createpoint(int x, int y);
         Point createpoint_cost(int x, int y, double cost);
+
     private:
         Point start_;
         Point goal_;

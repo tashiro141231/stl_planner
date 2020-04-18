@@ -31,19 +31,22 @@ RobotStatus StateMachine::getCurrentState() {
   return current_state_;
 }
 
-void StateMachine::setMap(int width, int height, double map_resolution, Point centre,unsigned char* data) {
+void StateMachine::setMap(int width, int height, double map_resolution, Point lower_left,unsigned char* data) {
   map_ = data;
   m_width_ = width;
   m_height_ = height;
   resolution_ = map_resolution;
-
-  gp.setMap(width, height, centre, data);
+  lower_left.x = lower_left.x / map_resolution;
+  lower_left.y = lower_left.y / map_resolution;
+  
+  gp.setMap(width, height, lower_left, data);
 }
 
 void StateMachine::setCostmap(int width, int height, unsigned char* data) {
   costmap_= data;  
   c_width_ = width;
   c_height_ = height;
+
 }
 
 std::vector<Point> StateMachine::CalcGlobalPlan(double x, double y, double theta) {

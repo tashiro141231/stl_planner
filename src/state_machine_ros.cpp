@@ -48,12 +48,12 @@ void StateMachineROS::Initialize()
 //------------- Callback -------------------//
 void StateMachineROS::MapLoadCallback(const nav_msgs::OccupancyGrid msg) {
   unsigned char* data = map_to_raw(msg); 
-  Point centre;
-  centre.x = msg.info.origin.position.x;
-  centre.y = msg.info.origin.position.y;
-  centre.theta = 0;
+  Point lower_left;
+  lower_left.x = msg.info.origin.position.x;
+  lower_left.y = msg.info.origin.position.y;
+  lower_left.theta = 0;
 
-  sm_.setMap(msg.info.width,msg.info.height, msg.info.resolution,centre,data);
+  sm_.setMap(msg.info.width,msg.info.height, msg.info.resolution, lower_left, data);
 }
 
 void StateMachineROS::CostmapLoadCallback(const nav_msgs::OccupancyGrid msg) {
@@ -63,7 +63,7 @@ void StateMachineROS::CostmapLoadCallback(const nav_msgs::OccupancyGrid msg) {
   sm_.setCostmap(msg.info.width,msg.info.height, data);
 }
 
-void StateMachineROS::UpdateCurrentPosition(){
+void StateMachineROS::UpdateCurrentPosition() {
   try{
     ts_ = tf_.lookupTransform(global_frame_, base_frame_, ros::Time(0));
     double x = ts_.transform.translation.x;

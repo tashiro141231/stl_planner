@@ -44,7 +44,7 @@ Point GPlanner::createpoint_cost(int x, int y, double cost) {
 
 //mapのmin,maxを取得gridのindexのmaxを計算
 //todo 引数のmapx.mapy,mapcostからgridのコストを更新
-void GPlanner::calc_map(std::vector<double> map_x,std::vector<double> map_y, std::vector<int> cost){
+void GPlanner::calc_map(std::vector<double> map_x,std::vector<double> map_y, std::vector<int> cost) {
 /*
   std::vector<double>::iterator iter = max_element(map_x.begin(), map_x.end());
   size_t index = distance(map_x.begin(), iter);
@@ -92,12 +92,18 @@ void GPlanner::calc_path_astar() {
   Init_robotmodel();
 
   while(!findFlag) {
-    if(isSamePoint(start_, goal_)) {      //Goal judge.
+    sortPointCost(open);
+
+    if(isSamePoint(open[0].first, goal_)) {      //Goal judge.
       std::cout << "Found goal!!" << std::endl;
       findFlag = true;
+      break;
+    }
+    if(open.empty()){
+      std::cout << "Could not find a path." << std::endl;
+      break;
     }
 
-    sortPointCost(open);
     std::pair<Point, Point> c_node;
     buff = open[0];
     open.erase(open.begin());
@@ -105,6 +111,7 @@ void GPlanner::calc_path_astar() {
     
     for(int itr = 0; itr < robot_model_.size(); itr++) {
       c_node = buff;
+      c_node.second = c_node.first;   //set the parent.
       c_node.first.x = c_node.first.x + robot_model_[itr].x;    //calcurating grid x
       c_node.first.y = c_node.first.y + robot_model_[itr].y;    //calcurating grid y
       c_node.first.theta = calc_heuristic(c_node.first, goal_) - c_node.first.theta + robot_model_[itr].theta;   //heuristic cost + moving cost
@@ -112,9 +119,11 @@ void GPlanner::calc_path_astar() {
       if(isObstacle(c_node.first)) {         //
         continue;
       }
-      checkLists(c_node,open, close);
+      checkLists(c_node, open, close);
     }
   }
+  std::vector<Point> path = lookup_closednode(close);
+  visualize_result(path, close);
 }
 
 void GPlanner::checkLists(std::pair<Point, Point> node, std::vector<std::pair<Point, Point> >& open, std::vector<std::pair<Point, Point> >& close) {
@@ -123,16 +132,20 @@ void GPlanner::checkLists(std::pair<Point, Point> node, std::vector<std::pair<Po
 
   for(int itr = 0; itr < open.size(); itr++) {
     //The case the node exist in the open list.
-    if(node.first.x == open[itr].first.x && node.first.y == open[itr].first.y) {
+    //if(node.first.x == open[itr].first.x && node.first.y == open[itr].first.y) {
+    if(isSamePoint(node.first, open[itr].first)) {
       if(node.first.theta < open[itr].first.theta) {
         open[itr].second = node.second;    //change parent node to more close node.
+        open[itr].first.theta = node.first.theta;    //change parent node to more close node.
       }
       hit = true;
+      break;
     }
   }
   for(int itr = 0; itr < close.size(); itr++) {
     //The case the node exist in the close list.
-    if(node.first.x == close[itr].first.x && node.first.y == close[itr].first.y) {
+    //if(node.first.x == close[itr].first.x && node.first.y == close[itr].first.y) {
+    if(isSamePoint(node.first, close[itr].first)) {
       if(node.first.theta < close[itr].first.theta) {
         close[itr].first.theta = node.first.theta;
         b = close[itr];
@@ -141,12 +154,56 @@ void GPlanner::checkLists(std::pair<Point, Point> node, std::vector<std::pair<Po
         open.push_back(b);
       }
       hit = true;
+      break;
     }
   }
   //The case the node doesn't exit both lists.
-  if(hit) {
+  if(!hit) {
     open.push_back(node);
   }
+}
+
+std::vector<Point> GPlanner::lookup_closednode(std::vector<std::pair<Point, Point> >& close) {
+  std::vector<Point> p;
+  Point buff;
+
+  buff = goal_;
+  p.insert(p.begin(), buff);    //goal set
+  while(1) {
+    if(isSamePoint(buff, start_)) {
+      p.insert(p.begin(), buff);    //path creating.
+      break;
+    }
+    for(int itr = 0; itr < close.size(); itr++) {
+      //if(close[itr].second.x == buff.x && close[itr].second.y == buff.y) {
+      if(isSamePoint(buff, close[itr].first)) {
+        buff = close[itr].second;
+        p.insert(p.begin(), buff);    //path creating.
+      }
+    }
+  }
+  return p;
+}
+
+void GPlanner::visualize_result(std::vector<Point> path, std::vector<std::pair<Point, Point> > close) {
+  FILE *gid;
+  if((gid = popen("gnuplot", "w")) == NULL) std::cout << "gnuplot open error" << std::endl;
+  fprintf(gid, "plot '-'\n");
+
+  //visualize search list.
+  for(int itr = 0; itr < close.size(); itr++) {
+    fprintf(gid, "%lf, %lf\n", (float)close[itr].first.x, (float)close[itr].first.y);
+  }
+
+  for(int itr = 0; itr < path.size(); itr++) {
+    fprintf(gid, "%lf, %lf\n", (float)path[itr].x, (float)path[itr].y);
+  }
+
+  fprintf(gid, "e\n");
+  fflush(gid);
+  getchar();
+  fprintf(gid, "pause -l");
+  pclose(gid);
 }
 
 void GPlanner::sortPointCost(std::vector<std::pair<Point, Point> >& open) {
@@ -191,30 +248,28 @@ double GPlanner::calc_heuristic(Point p1, Point p2) {
   return hypot(p1.x -p2.x, p1.y - p2.y);
 }
 
-std::vector<Node> GPlanner::rawmap_to_node(Point centre, unsigned char* map) {
+std::vector<Node> GPlanner::rawmap_to_node(Point lower_left, unsigned char* map) {
   std::vector<Node> g_map;
   Node buff;
 
-  //FILE *gid;
-  //if((gid = popen("gnuplot", "w")) == NULL) std::cout << "gnuplot open error" << std::endl;
-  //fprintf(gid, "plot '-'\n");
+  FILE *gid;
+  if((gid = popen("gnuplot", "w")) == NULL) std::cout << "gnuplot open error" << std::endl;
+  fprintf(gid, "plot '-'\n");
 
   for(int itr = 0; itr < width_*height_; itr++) {
     if(map[itr] != 0xFF && map[itr] != 0x00) {
       buff.cost = map[itr];
-      buff.x = (int)-(width_/2) + (int)(itr % max_x_)  + (int)centre.x;
-      buff.y = (int)height_/2  - (int)centre.y - (int)(itr / max_x_);
-      //std::cout << "x,y : " << buff.x << " " << buff.y << std::endl; 
+      buff.x = (int)(lower_left.x) + (int)(itr % width_);
+      buff.y = (int)(lower_left.y) + (int)(itr / width_);
       g_map.push_back(buff);
-
-      //fprintf(gid, "%lf, %lf\n", (float)buff.x, (float)buff.y);
+      fprintf(gid, "%lf, %lf\n", (float)buff.x, (float)buff.y);
     }
   }
-  //fprintf(gid, "e\n");
-  //fflush(gid);
-  //getchar();
-  //fprintf(gid, "pause -l");
-  //pclose(gid);
+  fprintf(gid, "e\n");
+  fflush(gid);
+  getchar();
+  fprintf(gid, "pause -l");
+  pclose(gid);
   return g_map;
 }
 
@@ -231,13 +286,14 @@ void GPlanner::setStartGoal(Point start, Point goal) {
   goal_ = goal;
 }
 
-void GPlanner::setMap(int width, int height, Point centre, unsigned char* map) {
+void GPlanner::setMap(int width, int height, Point lower_left, unsigned char* map) {
   width_ = width;
   height_ = height;
   max_x_ = width;
   max_y_ = height;
 
-  o_map_ = rawmap_to_node(centre, map);
+  std::cout << "w, h: " <<  width << " " << height << std::endl;
+  o_map_ = rawmap_to_node(lower_left, map);
 }
 
 

@@ -1,3 +1,10 @@
+/**
+ * @file gp.h
+ * @brief Global Planer for STELLA.
+ * @author Yosuke TASHIRO, Kotaro HIHARA
+ * @date 2020.04.19
+*/
+
 #include <iostream>
 #include <queue>
 #include <vector>
@@ -59,23 +66,25 @@ class GPlanner{
         void map_init();
         Point calc_position(int index,int min);  
         void calc_path();
-        void calc_path_astar();
+        std::vector<Point> calc_path_astar();
         std::vector<Node> rawmap_to_node(Point lower_left, unsigned char* map);
+        std::vector<Node> rawmap_to_node_vis(Point lower_left, unsigned char* map);
         void sortPointCost(std::vector<std::pair<Point, Point> >& open);
         void checkLists(std::pair<Point, Point> node, std::vector<std::pair<Point, Point> >& open, std::vector<std::pair<Point, Point> >& close);
-        std::vector<Point> lookup_closednode(std::vector<std::pair<Point, Point> >& close);
+        std::vector<Point> lookup_closednode(std::vector<std::pair<Point, Point> >& close, std::vector<std::pair<Point, Point> >& open);
         void visualize_result(std::vector<Point> path, std::vector<std::pair<Point, Point> > close);
+        Point ConvGridScale(Point p);
 
         //setter
         void setStartPoint(Point start);
         void setGoalPoint(Point goal);
         void setStartGoal(Point start, Point goal);
-        void setMap(int width, int height, Point lower_left, unsigned char *map);
+        void setMap(int width, int height, double reslution, Point lower_left, unsigned char *map);
         //getter
         Node getCostOrigin(int x, int y);
         std::vector<Point> getPath();
-        Point createpoint(int x, int y);
-        Point createpoint_cost(int x, int y, double cost);
+        Point createpoint(double x, double y);
+        Point createpoint_cost(double x, double y, double cost);
 
     private:
         Point start_;

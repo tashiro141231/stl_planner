@@ -1,3 +1,10 @@
+/**
+ * @file state_machine.h
+ * @brief State Machine class.
+ * @author Yosuke TASHIRO, Kotaro HIHARA
+ * @date 2020.04.19
+*/
+
 #include <string>
 #include <vector>
 #include <iostream>

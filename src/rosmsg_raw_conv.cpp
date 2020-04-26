@@ -22,18 +22,30 @@ unsigned char* map_to_raw(nav_msgs::OccupancyGrid map) {
 nav_msgs::Path path_to_rospath(std::vector<Point> path, std::string global_frame) {
   nav_msgs::Path ros_path;
   geometry_msgs::PoseStamped pose;
+  geometry_msgs::PoseStamped pre_pose;
   pose.pose.position.z = 0;
   
-  for(auto itr = path.begin(); itr != path.end(); itr++){
-    pose.pose.position.x = itr->x;
-    pose.pose.position.y = itr->y;
-    pose.pose.orientation = tf::createQuaternionMsgFromYaw(itr->theta);
+  
+  for(int itr = 0; itr < path.size()-1; itr++){
+    pose.pose.position.x = path[itr].x;
+    pose.pose.position.y = path[itr].y;
+    std::cout << "path :" << path[itr].x << ", " << path[itr].y << std::endl;
+    pose.pose.orientation = tf::createQuaternionMsgFromYaw(CalcDirection(path[itr], path[itr+1]));
     ros_path.poses.push_back(pose);
   }
+  pose.pose.position.x = path[path.size()-1].x;
+  pose.pose.position.y = path[path.size()-1].y;
+  ros_path.poses.push_back(pose);
+
+
   ros_path.header.frame_id = global_frame;
   ros_path.header.stamp = ros::Time::now();
 
   return ros_path;
+}
+
+double CalcDirection(Point a, Point b) {
+  return atan2(b.y-a.y, b.x-a.x);
 }
 
 Point pose_to_point(geometry_msgs::Pose pose) {

@@ -1,9 +1,21 @@
+/**
+ * @file state_machine_ros.cpp
+ * @brief State Machine ROS driver class.
+ * @author Yosuke TASHIRO, Kotaro HIHARA
+ * @date 2020.04.19
+*/
+
 
 #include "stl_planner/state_machine_ros.h"
 #include "stl_planner/rosmsg_raw_conv.h"
 
 using namespace smr;
 
+/** @fn 
+ * @brief 
+ * @param
+ * @detail
+*/
 StateMachineROS::StateMachineROS(tf2_ros::Buffer& tf) :
 tf_(tf),
 initialized_(false),
@@ -16,6 +28,11 @@ omega_stop_thr_(0)
   Initialize();
 }
 
+/** @fn 
+ * @brief 
+ * @param
+ * @detail
+*/
 void StateMachineROS::Initialize()
 {
   if(!initialized_) {
@@ -46,12 +63,18 @@ void StateMachineROS::Initialize()
 }
 
 //------------- Callback -------------------//
+/** @fn 
+ * @brief 
+ * @param
+ * @detail
+*/
 void StateMachineROS::MapLoadCallback(const nav_msgs::OccupancyGrid msg) {
   unsigned char* data = map_to_raw(msg); 
   Point lower_left;
   lower_left.x = msg.info.origin.position.x;
   lower_left.y = msg.info.origin.position.y;
   lower_left.theta = 0;
+  std::cout << "ros side: " << msg.info.resolution << std::endl;
 
   sm_.setMap(msg.info.width,msg.info.height, msg.info.resolution, lower_left, data);
 }
@@ -63,6 +86,11 @@ void StateMachineROS::CostmapLoadCallback(const nav_msgs::OccupancyGrid msg) {
   sm_.setCostmap(msg.info.width,msg.info.height, data);
 }
 
+/** @fn 
+ * @brief 
+ * @param
+ * @detail
+*/
 void StateMachineROS::UpdateCurrentPosition() {
   try{
     ts_ = tf_.lookupTransform(global_frame_, base_frame_, ros::Time(0));
@@ -82,6 +110,11 @@ void StateMachineROS::UpdateCurrentPosition() {
   }
 }
 
+/** @fn 
+ * @brief 
+ * @param
+ * @detail
+*/
 void StateMachineROS::WaypointCallback(geometry_msgs::PoseStamped msg) {
   nav_msgs::Path p = CalcGlobalPlan(msg);
 
@@ -91,15 +124,30 @@ void StateMachineROS::WaypointCallback(geometry_msgs::PoseStamped msg) {
 
 //------------- End of Callback ----------------//
 
+/** @fn 
+ * @brief 
+ * @param
+ * @detail
+*/
 void StateMachineROS::PubLocalPath(nav_msgs::Path path) {
   lp_path_pub_.publish(path);
 }
 
+/** @fn 
+ * @brief 
+ * @param
+ * @detail
+*/
 void StateMachineROS::PubGlobalPath(nav_msgs::Path path) {
   ROS_INFO("Pub global path now.");
   gp_path_pub_.publish(path);
 }
 
+/** @fn 
+ * @brief 
+ * @param
+ * @detail
+*/
 void StateMachineROS::UpdateRobotStatus(double robot_v, double robot_w) {
   bool v_is_zero =false, omega_is_zero = false;
 
@@ -120,7 +168,14 @@ void StateMachineROS::UpdateRobotStatus(double robot_v, double robot_w) {
     is_robot_moving_ = true;
   }
 }
+
+/** @fn 
+ * @brief 
+ * @param
+ * @detail
+*/
 nav_msgs::Path StateMachineROS::CalcGlobalPlan(geometry_msgs::PoseStamped goal) {
+  ROS_INFO("In the callback");
  double x,y,theta;
  x = goal.pose.position.x;
  y = goal.pose.position.y;
@@ -130,6 +185,11 @@ nav_msgs::Path StateMachineROS::CalcGlobalPlan(geometry_msgs::PoseStamped goal) 
  return p;
 }
 
+/** @fn 
+ * @brief 
+ * @param
+ * @detail
+*/
 nav_msgs::Path StateMachineROS::DebagCalcGlobalPlan(geometry_msgs::PoseStamped start, geometry_msgs::PoseStamped goal) {
  Point s = pose_to_point(start.pose);
  Point g = pose_to_point(goal.pose);
@@ -138,6 +198,11 @@ nav_msgs::Path StateMachineROS::DebagCalcGlobalPlan(geometry_msgs::PoseStamped s
  return p;
 }
 
+/** @fn 
+ * @brief 
+ * @param
+ * @detail
+*/
 void StateMachineROS::main_loop() {
   ros::Rate loop_rate(loop_rate_);
   while(ros::ok()) {

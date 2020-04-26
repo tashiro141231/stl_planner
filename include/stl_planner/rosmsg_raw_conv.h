@@ -9,10 +9,12 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <cmath>
 
 #include "stl_planner/nav_core.h"
 
 unsigned char* map_to_raw(nav_msgs::OccupancyGrid map);
 nav_msgs::Path path_to_rospath(std::vector<Point> path, std::string global_frame);
+double CalcDirection(Point a, Point b);
 Point pose_to_point(geometry_msgs::Pose pose);
 double quaternion_to_theta(geometry_msgs::Quaternion orientation);

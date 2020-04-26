@@ -1,3 +1,9 @@
+/**
+ * @file state_machine_node.cpp
+ * @brief State Machine ROS node.
+ * @author Yosuke TASHIRO, Kotaro HIHARA
+ * @date 2020.04.19
+*/
 
 #include <string>
 #include <vector>

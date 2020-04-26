@@ -1,3 +1,10 @@
+/**
+ * @file state_machine_ros.h
+ * @brief State Machine ROS driver class.
+ * @author Yosuke TASHIRO, Kotaro HIHARA
+ * @date 2020.04.19
+*/
+
 #include "ros/ros.h"
 
 #include "tf2_ros/transform_listener.h"

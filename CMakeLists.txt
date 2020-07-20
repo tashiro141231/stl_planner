@@ -145,6 +145,15 @@ add_executable(state_machine
   src/rosmsg_raw_conv.cpp
   src/state_machine.cpp
   src/gp.cpp
+  src/lp.cpp
+)
+
+add_executable(dwa_ros
+  src/dwa_ros_node.cpp
+  src/planner_base_ros.cpp
+  src/dwa_ros.cpp
+  src/rosmsg_raw_conv.cpp
+  src/lp.cpp
 )
 
 ## Rename C++ executable without prefix

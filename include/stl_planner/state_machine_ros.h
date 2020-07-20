@@ -68,6 +68,15 @@ class StateMachineROS {
 
     double robot_width_;
     double robot_length_;
+    double robot_radius_;
+
+    //dwa params
+    double max_vel_, min_vel_, max_acc_;
+    double max_w_, min_w_;
+    double dt_, predict_time_;
+    double goal_cost_gain_;
+    double speed_cost_gain_;
+    double v_resolution_, w_resolution_;
     
     ros::Publisher gp_path_pub_;
     ros::Publisher lp_path_pub_;

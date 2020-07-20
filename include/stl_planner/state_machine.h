@@ -11,9 +11,9 @@
 
 #include "stl_planner/nav_core.h"
 #include "stl_planner/gp.h"
+#include "stl_planner/lp.h"
 
 namespace sm {
-
 
 class StateMachine {
   public:
@@ -27,6 +27,7 @@ class StateMachine {
      */
     //virtual ~StateMachine();
     void Initialize(double robot_width, double robot_length);
+    void SetDWAParams(double v_max, double v_min, double max_acc, double w_max, double w_min, double v_reso, double w_reso, double dt, double prediction_time);
     //setter
     void setCurrentPosition(double x, double y, double theta);
     void setGoalPosition(double x, double y, double theta);
@@ -36,6 +37,7 @@ class StateMachine {
     RobotStatus getCurrentState();
 
     //Planner call function
+    void calc_paths();
     std::vector<Point> CalcGlobalPlan(double x, double y, double theta);
     std::vector<Point> DebagCalcGlobalPlan(Point start, Point goal);
 
@@ -43,6 +45,7 @@ class StateMachine {
 
   private:
     GPlanner gp;
+    LPlanner dwa;
     RobotStatus current_state_;
     Position current_goal_;
     Position current_pos_;

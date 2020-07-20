@@ -435,7 +435,6 @@ void GPlanner::setMap(int width, int height, double resolution, Point lower_left
   max_y_ = height;
   resolution_ = resolution;
 
-  std::cout << "w, h: " <<  width << " " << height << std::endl;
   o_map_ = rawmap_to_node(lower_left, map);
   //o_map_ = rawmap_to_nodei_vis(lower_left, map);
 }

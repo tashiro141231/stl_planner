@@ -23,7 +23,12 @@ is_robot_moving_(false),
 global_frame_("map"),
 base_frame_("odom"),
 vel_stop_thr_(0),
-omega_stop_thr_(0)
+omega_stop_thr_(0),
+v_resolution_(0.01),
+w_resolution_(1*M_PI/180),
+dt_(0.1),
+max_acc_(0.2),
+predict_time_(3.0)
 {
   Initialize();
 }
@@ -46,9 +51,20 @@ void StateMachineROS::Initialize()
     private_nh.getParam("robot_length", robot_length_);
     private_nh.getParam("goal_topic_name", goal_topic_);
     private_nh.getParam("loop_rate", loop_rate_);
+
+    private_nh.getParam("dwa/max_vel", max_vel_);
+    private_nh.getParam("dwa/min_vel", min_vel_);
+    private_nh.getParam("dwa/max_w", max_w_);
+    private_nh.getParam("dwa/min_w", min_w_);
+    private_nh.getParam("dwa/max_acc", max_acc_);
+    private_nh.getParam("dwa/v_resolution", v_resolution_);
+    private_nh.getParam("dwa/w_resolution", w_resolution_);
+    private_nh.getParam("dwa/dt", dt_);
+    private_nh.getParam("dwa/predict_time", predict_time_);
     initialized_ = true;
 
     sm_.Initialize(robot_width_, robot_length_);
+    sm_.SetDWAParams(max_vel_, min_vel_, max_acc_, max_w_, min_w_, v_resolution_, w_resolution_, dt_, predict_time_);
 
     //Subscriber
     map_sub_ = nh.subscribe<nav_msgs::OccupancyGrid>("map", 1, &StateMachineROS::MapLoadCallback, this);
@@ -175,7 +191,6 @@ void StateMachineROS::UpdateRobotStatus(double robot_v, double robot_w) {
  * @detail
 */
 nav_msgs::Path StateMachineROS::CalcGlobalPlan(geometry_msgs::PoseStamped goal) {
-  ROS_INFO("In the callback");
  double x,y,theta;
  x = goal.pose.position.x;
  y = goal.pose.position.y;
@@ -208,6 +223,7 @@ void StateMachineROS::main_loop() {
   while(ros::ok()) {
     UpdateCurrentPosition();
     ros::spinOnce();
+    sm_.calc_paths();
     loop_rate.sleep();
   }
 }

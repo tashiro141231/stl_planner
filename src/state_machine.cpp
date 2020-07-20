@@ -34,6 +34,15 @@ void StateMachine::Initialize(double robot_width, double robot_length){
  * @param
  * @detail
 */
+void StateMachine::SetDWAParams(double v_max, double v_min, double max_acc, double w_max, double w_min, double v_reso, double w_reso, double dt, double prediction_time) {
+  dwa.SetParams(v_max, v_min, max_acc, w_max, w_min, v_reso, w_reso, dt, prediction_time);
+}
+
+/** @fn 
+ * @brief 
+ * @param
+ * @detail
+*/
 void StateMachine::setGoalPosition(double x, double y, double theta) {
   ;
 }
@@ -113,7 +122,7 @@ std::vector<Point> StateMachine::CalcGlobalPlan(double x, double y, double theta
  * @detail
 */
 std::vector<Point> StateMachine::DebagCalcGlobalPlan(Point start, Point goal) {
-  
+  current_state_ = SET_DESTINATION; 
   gp.setStartGoal(ConvGridPoint(start), ConvGridPoint(goal));
   gp.calc_path();
   return gp.getPath();
@@ -129,5 +138,21 @@ Point StateMachine::ConvGridPoint(Point point) {
   grid_point.x = (int)(point.x / resolution_);
   grid_point.y = (int)(point.y / resolution_);
   return grid_point;
+}
+
+/** @fn 
+ * @brief 
+ * @param
+ * @detail
+*/
+void StateMachine::calc_paths() {
+  switch(current_state_) {
+    case NO_DESTINATION:
+      break;
+    case SET_DESTINATION:
+      break;
+    case STOP:
+      break;
+  }
 }
 

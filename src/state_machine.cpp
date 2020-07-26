@@ -109,7 +109,7 @@ std::vector<Point> StateMachine::CalcGlobalPlan(double x, double y, double theta
   Point goal;
   goal.x = x;
   goal.y = y;
-  gp.setGoalPoint(ConvGridPoint(goal));
+  gp.setGoalPoint(goal);
   //gp.calc_path();
   
   return gp.calc_path_astar();
@@ -123,7 +123,7 @@ std::vector<Point> StateMachine::CalcGlobalPlan(double x, double y, double theta
 */
 std::vector<Point> StateMachine::DebagCalcGlobalPlan(Point start, Point goal) {
   current_state_ = SET_DESTINATION; 
-  gp.setStartGoal(ConvGridPoint(start), ConvGridPoint(goal));
+  gp.setStartGoal(start, goal);
   gp.calc_path();
   return gp.getPath();
 }

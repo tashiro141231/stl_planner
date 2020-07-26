@@ -63,7 +63,7 @@ class LPlanner{
         }
 
         void SetParams(double v_max, double v_min, double max_acc, double w_max, double w_min, double v_reso, double w_reso, double dtime, double prediction_time);
-        void SetMap(int width, int heihgt, double resolution, Point lower_left, unsigned char* map);
+        void setMap(int width, int heihgt, double resolution, Point lower_left, unsigned char* map);
         State motion(State x, double v, double w);
         DW calc_dynamic_window(State X);
         std::vector<State> calc_trajectory(double v,double w);

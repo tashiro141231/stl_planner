@@ -395,13 +395,20 @@ std::vector<Node> GPlanner::rawmap_to_node_vis(Point lower_left, unsigned char* 
   return g_map;
 }
 
+Point GPlanner::ConvGridPoint(Point point) {
+  Point grid_point;
+  grid_point.x = (int)(point.x / resolution_);
+  grid_point.y = (int)(point.y / resolution_);
+  return grid_point;
+}
+
 /** @fn 
  * @brief 
  * @param
  * @detail
 */
 void GPlanner::setStartPoint(Point start) {
-  start_ = start;
+  start_ = ConvGridPoint(start);
 }
 
 /** @fn 
@@ -410,7 +417,7 @@ void GPlanner::setStartPoint(Point start) {
  * @detail
 */
 void GPlanner::setGoalPoint(Point goal) {
-  goal_ = goal;
+  goal_ = ConvGridPoint(goal);
 }
 
 /** @fn 
@@ -419,8 +426,8 @@ void GPlanner::setGoalPoint(Point goal) {
  * @detail
 */
 void GPlanner::setStartGoal(Point start, Point goal) {
-  start_ = start;
-  goal_ = goal;
+  start_ = ConvGridPoint(start);
+  goal_ = ConvGridPoint(goal);
 }
 
 /** @fn 

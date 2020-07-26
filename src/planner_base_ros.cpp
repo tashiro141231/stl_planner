@@ -13,7 +13,8 @@ v_resolution_(0.01),
 w_resolution_(1*M_PI/180),
 dt_(0.1),
 max_acc_(0.2),
-predict_time_(3.0)
+predict_time_(3.0),
+goal_topic_("move_base_simple/goal")
 {
   Initialize();
 }
@@ -45,7 +46,7 @@ void PlannerBaseROS::Initialize() {
     //Subscriber
     map_sub_ = nh.subscribe<nav_msgs::OccupancyGrid>("map", 1, &PlannerBaseROS::MapLoadCallback, this);
     costmap_sub_ =nh.subscribe<nav_msgs::OccupancyGrid>("move_base/local_cost_map/costmap", 1, &PlannerBaseROS::CostmapLoadCallback, this);
-    // goal_sub_ = nh.subscribe<geometry_msgs::PoseStamped>("move_base_simple/goal", 1, &PlannerBaseROS::WaypointCallback, this);
+    goal_sub_ = nh.subscribe<geometry_msgs::PoseStamped>(goal_topic_, 1, &PlannerBaseROS::WaypointCallback, this);
   }
 }
 
@@ -69,6 +70,8 @@ void PlannerBaseROS::UpdateCurrentPosition() {
 }
 
 
+
+/*--------------------- Callback function  ---------------------*/
 void PlannerBaseROS::MapLoadCallback(const nav_msgs::OccupancyGrid msg) {
   map_ = map_to_raw(msg);
   lower_left_.x = msg.info.origin.position.x;
@@ -78,5 +81,23 @@ void PlannerBaseROS::MapLoadCallback(const nav_msgs::OccupancyGrid msg) {
   map_height_ = msg.info.height;
   map_resolution_ = msg.info.resolution;
 
-  setMap();
+  setMap(map_width_, map_height_, map_resolution_, lower_left_, map_);
 }
+
+void PlannerBaseROS::CostmapLoadCallback(const nav_msgs::OccupancyGrid msg) {
+  costmap_ = map_to_raw(msg);
+  cost_lower_left_.x = msg.info.origin.position.x;
+  cost_lower_left_.y = msg.info.origin.position.y;
+  lower_left_.theta = 0;
+  cost_width_ = msg.info.width;
+  cost_height_ = msg.info.height;
+  cost_resolution_ = msg.info.resolution;
+
+  setCostMap(map_width_, map_height_, map_resolution_, lower_left_, costmap_);
+}
+
+void PlannerBaseROS::WaypointCallback(geometry_msgs::PoseStamped msg) {
+  setGoal(msg); 
+}
+/*------------------ end of Callback function ------------------*/
+

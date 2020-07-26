@@ -86,6 +86,8 @@ class GPlanner{
         Point createpoint(double x, double y);
         Point createpoint_cost(double x, double y, double cost);
 
+        Point ConvGridPoint(Point point);
+
     private:
         Point start_;
         Point goal_;

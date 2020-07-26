@@ -7,17 +7,17 @@ omega_stop_theshhold: 0
 robot_width: 0.5
 robot_length: 0.8
 dwa:
-	max_vel: 1.0
-	min_vel: 0
-	max_w: 0.6981
-	min_w: -0.6981
-	max_dw: 0.6981
-	dt: 0.1
-	v_resolution: 0.01
-	w_resolution: 0.01
-	predict_time: 3.0
-	to_goal_cost: 1.0
-	speed_cost_gain: 1.0
-	robot_radius: 0.3
-	max_acc: 0.2
+ max_vel: 1.0
+ min_vel: 0
+ max_w: 0.6981
+ min_w: -0.6981
+ max_dw: 0.6981
+ dt: 0.1
+ v_resolution: 0.01
+ w_resolution: 0.01
+ predict_time: 3.0
+ to_goal_cost: 1.0
+ speed_cost_gain: 1.0
+ robot_radius: 0.3
+ max_acc: 0.2
 

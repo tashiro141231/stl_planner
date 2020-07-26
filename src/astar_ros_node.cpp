@@ -1,8 +1,8 @@
 /**
- * @file state_machine_node.cpp
- * @brief State Machine ROS node.
+ * @file astar_ros_node.cpp
+ * @brief Astar ROS node.
  * @author Yosuke TASHIRO, Kotaro HIHARA
- * @date 2020.04.19
+ * @date 2020.07.26
 */
 
 #include <string>
@@ -14,19 +14,18 @@
 #include "nav_msgs/MapMetaData.h"
 
 #include "stl_planner/planner_base_ros.h"
-#include "stl_planner/dwa_ros.h"
-
+#include "stl_planner/astar_ros.h"
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "DWA_ROS_node");
+  ros::init(argc, argv, "AStar_ROS_node");
   ros::NodeHandle n;
   tf2_ros::Buffer buffer(ros::Duration(10));
   tf2_ros::TransformListener tf(buffer);
 
-  DWA_ROS dwa_node(buffer);
+  AStar_ROS astar_node(buffer);
 
-  dwa_node.main_loop();
+  astar_node.main_loop();
 
   return 0;
 }

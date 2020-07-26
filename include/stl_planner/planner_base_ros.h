@@ -27,7 +27,7 @@
 class PlannerBaseROS {
   public:
     PlannerBaseROS(tf2_ros::Buffer& tf);
-    virtual void main_loop();
+    virtual void main_loop() {};
     virtual void Initialize();
     void UpdateCurrentPosition();
     //void UpdateRobotStatus(double robot_v, double robot_w);
@@ -35,12 +35,19 @@ class PlannerBaseROS {
     //Callback
     void MapLoadCallback(const nav_msgs::OccupancyGrid msg);
     void CostmapLoadCallback(const nav_msgs::OccupancyGrid msg);
-    virtual void setMap() = 0;
+    void WaypointCallback(geometry_msgs::PoseStamped msg); 
+
+    // Override below function
+    virtual void setMap(int width, int height, double resolution, Point lower_left, unsigned char* map) {};
+    virtual void setCostMap(int width, int height, double resolution, Point lower_left, unsigned char* map) {};
+    virtual void setGoal(geometry_msgs::PoseStamped msg) {};
 
     //getter
     int getLoopRate() { return loop_rate_; }
     int getMapWidth() { return map_width_; }
     int getMapHeight() { return map_height_; }
+    int getCostMapWidth() { return cost_width_; }
+    int getCostMapHeight() { return cost_height_; }
     double getRobotWidth() { return robot_width_; }
     double getRobotLength() { return robot_length_; }
     double getMaxVel() { return max_vel_; }
@@ -52,10 +59,17 @@ class PlannerBaseROS {
     double getVelReso() { return v_resolution_; }
     double getOmegaReso() { return w_resolution_; }
     double getMapResolution() { return map_resolution_; }
+    double getCostMapResolution() { return cost_resolution_; }
+    Point getMapLowerLeft() { return lower_left_; }
+    Point getCostMapLowerLeft() { return cost_lower_left_; }
     unsigned char* getMapRaw() { return map_; }
+    unsigned char* getCostMapRaw() { return costmap_; }
     double getPredictTime() { return predict_time_; }
     Point getCurrentPos() { return current_pos_; }
     bool isRobotMoving() { return is_robot_moving_; }
+
+    std::string getGlobalFrame() { return global_frame_; }
+    std::string getBaseFrame() { return base_frame_; }
  
     //setter
     void setLoopRate(int val) { loop_rate_ = val; }
@@ -70,6 +84,7 @@ class PlannerBaseROS {
     void setMaxAcc(double val) { max_acc_ = val; }
     void setGaolTopicName(std::string val) { goal_topic_ = val; }
     void setMapLowerLeft(Point val) { lower_left_ = val; }
+
 
   private:
     geometry_msgs::TransformStamped ts_;
@@ -103,11 +118,13 @@ class PlannerBaseROS {
     std::string global_frame_;
     std::string base_frame_;
     Point lower_left_;
+    Point cost_lower_left_;
     int map_width_;
     int map_height_;
     int cost_width_;
     int cost_height_;
     double map_resolution_;
+    double cost_resolution_;
     double path_resolution_;
     unsigned char* map_;
     unsigned char* costmap_;

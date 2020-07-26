@@ -156,6 +156,14 @@ add_executable(dwa_ros
   src/lp.cpp
 )
 
+add_executable(astar_ros
+  src/astar_ros_node.cpp
+  src/planner_base_ros.cpp
+  src/astar_ros.cpp
+  src/rosmsg_raw_conv.cpp
+  src/gp.cpp
+)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -168,6 +176,14 @@ add_executable(dwa_ros
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(state_machine
+   ${catkin_LIBRARIES}
+)
+
+target_link_libraries(dwa_ros
+   ${catkin_LIBRARIES}
+)
+
+target_link_libraries(astar_ros
    ${catkin_LIBRARIES}
 )
 

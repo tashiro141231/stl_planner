@@ -353,6 +353,8 @@ std::vector<Node> GPlanner::rawmap_to_node(Point lower_left, unsigned char* map)
   std::vector<Node> g_map;
   Node buff;
 
+  lower_left = ConvGridPoint(lower_left);
+
   for(int itr = 0; itr < width_*height_; itr++) {
     if(map[itr] != 0xFF && map[itr] != 0x00) {
       buff.cost = map[itr];

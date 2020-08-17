@@ -63,6 +63,7 @@ class LPlanner{
         }
 
         void SetParams(double v_max, double v_min, double max_acc, double w_max, double w_min, double v_reso, double w_reso, double dtime, double prediction_time);
+        std::vector<Node> rawmap_to_node(Point lower_left, unsigned char* map);
         void setMap(int width, int heihgt, double resolution, Point lower_left, unsigned char* map);
         State motion(State x, double v, double w);
         DW calc_dynamic_window(State X);
@@ -71,10 +72,18 @@ class LPlanner{
         double calc_obstacle_cost(std::vector<State> traj, std::vector<Point> ob);
         double calc_to_goal_cost(std::vector<State> traj,Point goal);
         void dwa_control(double x,double y,double theta, double v, double w, Point goal, std::vector<Point> ob);
-
+        Point ConvGridScale(Point p);
         
     private:
          Point start_;
          Point goal_;
+         Point centre_;
+         int height_;
+         int width_;
+         double resolution_;
+         int max_x_;
+         int max_y_;
+         std::vector<Point> robot_model_;
+         std::vector<Node> o_map_;
 };
 

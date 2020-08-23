@@ -6,7 +6,7 @@ tf_(tf),
 initialized_(false),
 is_robot_moving_(false),
 global_frame_("map"),
-base_frame_("odom"),
+base_frame_("base_link"),
 vel_stop_thr_(0),
 omega_stop_thr_(0),
 v_resolution_(0.01),
@@ -30,7 +30,7 @@ void PlannerBaseROS::Initialize() {
     private_nh.getParam("robot_width", robot_width_);
     private_nh.getParam("robot_length", robot_length_);
     private_nh.getParam("goal_topic_name", goal_topic_);
-    private_nh.getParam("loop_rate", loop_rate_);
+    private_nh.getParam("line_planner/loop_rate", loop_rate_);
 
     private_nh.getParam("dwa/max_vel", max_vel_);
     private_nh.getParam("dwa/min_vel", min_vel_);
@@ -56,13 +56,14 @@ void PlannerBaseROS::UpdateCurrentPosition() {
     double x = ts_.transform.translation.x;
     double y = ts_.transform.translation.y;
     double roll,pitch,yaw;
-    tf2::Quaternion tfq;
     tf2::Quaternion q;
     tf2::convert(ts_.transform.rotation, q);
-    tf2::Matrix3x3 (tfq).getEulerYPR(yaw,roll,pitch);
+    tf2::Matrix3x3 (q).getEulerYPR(yaw,roll,pitch);
     current_pos_.x = x;
     current_pos_.y = y;
     current_pos_.theta = yaw;
+    std::cout << "PlannerBase: yaw pitch roll :" << yaw << " " << pitch << " " << roll << std::endl;
+    setCurrentPositionToPlanner(current_pos_);
     // sm_.setCurrentPosition(x, y, yaw);
   } catch (tf2::TransformException &ex) {
     ROS_WARN("Could not transform %s to %s :%s", global_frame_.c_str(), base_frame_.c_str(), ex.what());

@@ -148,6 +148,14 @@ add_executable(state_machine
   src/lp.cpp
 )
 
+add_executable(line_planner_ros
+  src/line_planner_ros_node.cpp
+  src/planner_base_ros.cpp
+  src/line_planner_ros.cpp
+  src/rosmsg_raw_conv.cpp
+  src/line_planner.cpp
+)
+
 add_executable(dwa_ros
   src/dwa_ros_node.cpp
   src/planner_base_ros.cpp
@@ -176,6 +184,10 @@ add_executable(astar_ros
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(state_machine
+   ${catkin_LIBRARIES}
+)
+
+target_link_libraries(line_planner_ros
    ${catkin_LIBRARIES}
 )
 

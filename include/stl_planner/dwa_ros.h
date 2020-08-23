@@ -11,6 +11,7 @@ class DWA_ROS : PlannerBaseROS {
     void setMap(int width, int height, double resolution, Point lower_left, unsigned char* map);
     void setCostMap(int width, int height, double resolution, Point lower_left, unsigned char* map);
     void setGoal(geometry_msgs::PoseStamped msg);
+    void setCurrentPositionToPlanner(Point point);
 
   private:
     void setDWAParams();

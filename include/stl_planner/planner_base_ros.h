@@ -30,6 +30,7 @@ class PlannerBaseROS {
     virtual void main_loop() {};
     virtual void Initialize();
     void UpdateCurrentPosition();
+    virtual void setCurrentPositionToPlanner(Point point){};
     //void UpdateRobotStatus(double robot_v, double robot_w);
     // bool SetRobotInfo(std::strint path);
     //Callback
@@ -72,7 +73,7 @@ class PlannerBaseROS {
     std::string getBaseFrame() { return base_frame_; }
  
     //setter
-    void setLoopRate(int val) { loop_rate_ = val; }
+    void setLoopRate(double val) { loop_rate_ = val; }
     void setMapWidth(int val) { map_width_ = val; }
     void setMapHeight(int val) { map_height_ = val; }
     void setRobotWidth(double val) { robot_width_ = val; }

@@ -43,6 +43,10 @@ void DWA_ROS::setCostMap(int width, int height, double resolution, Point lower_l
   //dwa.SetCostMap(getCostMapWidth(), getCostMapHeight(), getCostMapResolution(), getCostMapLowerLeft(), getCostgMapRaw());
 }
 
+void DWA_ROS::setCurrentPositionToPlanner(Point point) {
+  ;
+}
+
 void DWA_ROS::main_loop() {
   ros::Rate loop_rate(getLoopRate());
   while(ros::ok()) {

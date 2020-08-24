@@ -10,8 +10,38 @@ LPlanner::LPlanner(){
   ;
 }
 
-void LPlanner::setMap(int width, int height, double resolutuon, Point lower_left, unsigned char* map) {
-  ;
+void LPlanner::setMap(int width, int height, double resolution, Point lower_left, unsigned char* map) {
+  width_ = width;
+  height_ = height;
+  max_x_ = width;
+  max_y_ = height;
+  resolution_ = resolution;
+
+  o_map_ = rawmap_to_node(lower_left, map);
+}
+
+std::vector<Node> LPlanner::rawmap_to_node(Point lower_left, unsigned char* map) {
+  std::vector<Node> g_map;
+  Node buff;
+
+  lower_left = ConvGridPoint(lower_left);
+
+  for(int itr = 0; itr < width_*height_; itr++) {
+    if(map[itr] != 0xFF && map[itr] != 0x00) {
+      buff.cost = map[itr];
+      buff.x = (int)(lower_left.x) + (int)(itr % width_);
+      buff.y = (int)(lower_left.y) + (int)(itr / width_);
+      g_map.push_back(buff);
+    }
+  }
+  return g_map;
+}
+
+Point LPlanner::ConvGridPoint(Point point) {
+  Point grid_point;
+  grid_point.x = (int)(point.x / resolution_);
+  grid_point.y = (int)(point.y / resolution_);
+  return grid_point;
 }
 
 void LPlanner::SetParams(double v_max, double v_min, double max_acc, double w_max, double w_min, double v_reso, double w_reso, double dtime, double prediction_time) {
@@ -49,13 +79,13 @@ DW LPlanner::calc_dynamic_window(State state){
   return dw;
 }
 
-std::vector<State> LPlanner::calc_trajectory(double v,double w){   
+std::vector<State> LPlanner::calc_trajectory(State x,double v,double w){   
   std::vector<State> traj ={};
-  State x = {};
+  State x_ = x;
   double time = 0;
   while(time<=predict_time){
-     x = motion(x,v,w);
-     traj.push_back(x);
+     x_ = motion(x_,v,w);
+     traj.push_back(x_);
      time += dt;
   }
   return traj;

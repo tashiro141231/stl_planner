@@ -67,7 +67,7 @@ class LPlanner{
         void setMap(int width, int heihgt, double resolution, Point lower_left, unsigned char* map);
         State motion(State x, double v, double w);
         DW calc_dynamic_window(State X);
-        std::vector<State> calc_trajectory(double v,double w);
+        std::vector<State> calc_trajectory(State x,double v,double w);
         void calc_final_input(State x, VW u, DW dw, Point goal,std::vector<Point> ob);
         double calc_obstacle_cost(std::vector<State> traj, std::vector<Point> ob);
         double calc_to_goal_cost(std::vector<State> traj,Point goal);

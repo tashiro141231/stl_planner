@@ -1,3 +1,4 @@
+
 /**
  * @file astar_ros_node.cpp
  * @brief Astar ROS node.
@@ -14,18 +15,18 @@
 #include "nav_msgs/MapMetaData.h"
 
 #include "stl_planner/planner_base_ros.h"
-#include "stl_planner/astar_ros.h"
+#include "stl_planner/line_planner_ros.h"
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "AStar_ROS_node");
+  ros::init(argc, argv, "LinePlanner_ROS_node");
+  ROS_INFO("LinePlanner_ROS has been initialized.");
   ros::NodeHandle n;
   tf2_ros::Buffer buffer(ros::Duration(10));
   tf2_ros::TransformListener tf(buffer);
 
-  AStarROS astar_node(buffer);
-
-  astar_node.main_loop();
+  LinePlannerROS line_node(buffer);
+  line_node.main_loop();
 
   return 0;
 }

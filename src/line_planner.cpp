@@ -1,0 +1,180 @@
+
+#include "stl_planner/line_planner.h"
+
+LinePlanner::LinePlanner() {
+  ;
+}
+
+void LinePlanner::Initialize(double max_vel, double min_vel, double acc, double max_w, double max_eta, double Ko, double Kp, double Ke, double loop_rate) {
+  is_set_goal_ = false;
+  //Stabele statement below Ko > 0 && Ko*Kp - Ke > 0 && Ko*Kp*Ke - Ke*Ke > 0
+  max_vel_ = max_vel;
+  min_vel_ = min_vel;
+  acc_ = acc;
+  dt_ = 1 / loop_rate;
+  Ko_ = Ko;
+  Kp_ = Kp;
+  Ke_ = Ke;
+  max_eta_ = max_eta;
+  current_vel_ = 0;
+  current_omega_ = 0;
+  prev_omega_ = 0;
+}
+
+bool LinePlanner::UpdateVW() {
+  if(is_set_goal_) {
+    //Update velocity
+    if(current_vel_ < max_vel_) {
+      current_vel_ += acc_ * dt_;
+    }
+    else {
+      current_vel_ = max_vel_;
+    }
+    //Update omega
+    prev_omega_ = current_omega_;
+    UpdateFeedbackParam();
+    current_omega_ = prev_omega_ + dt_* (-Ke_ * eta_ - Kp_ * phi_ - Ko_ * prev_omega_ );
+
+    std::cout << "V: " << current_vel_ << " W: " << current_omega_ << std::endl;
+    return true;
+  }
+  return false;
+}
+
+void LinePlanner::UpdateFeedbackParam() {
+  //Update ditance
+  double a = sqrt(la_ * la_ + lb_ * lb_);
+  eta_ = (la_ * current_pos_.x + lb_ * current_pos_.y + lc_) / a;
+  if(max_eta_ > eta_ ) {
+    eta_ = max_eta_;
+  }
+  //Update angle diff
+  phi_ = target_line_angle_ - ConvAngleRange(current_pos_.theta); 
+  if( M_PI > phi_ && -M_PI < phi_) {
+  }
+  else if(phi_ >= M_PI) {
+    phi_ = 2 * M_PI - phi_;
+  }
+  else if(phi_ <= -M_PI) {
+    phi_ = -2 * M_PI - phi_;
+  }
+  std::cout << "la_: " << la_ << " lb_: " << lb_ << "lc: " << lc_ << std::endl;
+  std::cout << "eta_: " << eta_ << " phi_: " << phi_ << std::endl;
+}
+
+void LinePlanner::InitTargetLine() {
+  target_line_angle_ = atan2((goal_.y - start_.y), (goal_.x - start_.x));
+  double slope = (goal_.y - start_.y) / (goal_.x - start_.x);
+  double seppen = goal_.y - slope * goal_.x;
+  la_ = -slope;
+  lb_ = 1;
+  lc_ = -seppen;
+}
+
+bool LinePlanner::goalCheck() {
+  if(is_set_goal_) {
+    double dis = hypot((current_pos_.x - goal_.x), (current_pos_.y - goal_.y));
+    if(dis < 0.2) {
+      is_set_goal_ = false;
+      return true;
+    }
+  }
+  return false;
+}
+
+void LinePlanner::setCurrentPosition(Point point) {
+  current_pos_ = point;
+  std::cout << "Set CurrentPosition x: " << current_pos_.x << " y: " << current_pos_.y << " theta: " << current_pos_.theta * 180 / M_PI << std::endl;
+  if(is_set_goal_) {
+    std::cout << "Start x: " << start_.x << " y: " << start_.y << " theta: " << start_.theta * 180 / M_PI << std::endl;
+    std::cout << "Goal x: " << goal_.x << " y: " << goal_.y << " theta: " << goal_.theta * 180 / M_PI << std::endl;
+  }
+}
+
+void LinePlanner::setStartPoint(Point start) {
+  start_ = start;
+}
+
+void LinePlanner::setGoalPoint(Point goal) {
+  goal_ = goal;
+}
+
+void LinePlanner::setStartGoal(Point start, Point goal) {
+  start_ = start;
+  goal_ = goal;
+  InitTargetLine();
+  is_set_goal_ = true;
+}
+
+void LinePlanner::setMap(int width, int height, double resolution, Point lower_left, unsigned char *map) {
+  map_width_ = width;
+  map_height_ = height;
+  map_resolution_ = resolution;
+  map_lower_left_ = lower_left;
+
+  static_map_ = map;
+}
+
+void LinePlanner::setCostMap(int width, int height, double reslution, Point lower_left, unsigned char *map) {
+  ;
+}
+
+std::vector<Node> LinePlanner::RawMapToNode(Point lower_left, unsigned char *map) {
+  std::vector<Node> g_map;
+  Node buff;
+
+  lower_left = ConvPointToGrid(lower_left);
+
+  for(int itr = 0; itr < map_width_* map_height_; itr++) {
+    if(map[itr] != 0xFF && map[itr] != 0x00) {
+      buff.cost = map[itr];
+      buff.x = (int)(lower_left.x) + (int)(itr % map_width_);
+      buff.y = (int)(lower_left.y) + (int)(itr / map_width_);
+      g_map.push_back(buff);
+    }
+  }
+  return g_map;
+}
+
+bool LinePlanner::getCost(int x, int y) {
+  if(x * y < map_width_ * map_height_ ) {
+    //get cost from [m] or grid coordinate
+    ;
+  }
+}
+
+bool LinePlanner::isRobotPlannning() {
+  return is_set_goal_;
+}
+
+double LinePlanner::getVelOut() {
+  return current_vel_;
+}
+
+double LinePlanner::getOmgOut() {
+  return current_omega_;
+}
+
+Point LinePlanner::ConvGridToPoint(Point p) {
+  p.x = p.x * map_resolution_;
+  p.y = p.y * map_resolution_;
+  return p;
+}
+
+Point LinePlanner::ConvPointToGrid(Point p) {
+  p.x = (int)(p.x / map_resolution_);
+  p.y = (int)(p.y / map_resolution_);
+  return p;
+}
+
+double LinePlanner::ConvAngleRange(double value) {
+  if(value <= M_PI && value >= -M_PI) return value;
+  else if(value < -M_PI) { 
+    value = value + M_PI;
+  }
+  else {
+    value = value - M_PI;
+  }
+  return value;
+}
+

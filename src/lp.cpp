@@ -10,38 +10,56 @@ LPlanner::LPlanner(){
   ;
 }
 
+void LPlanner::setStartPoint(Point start) {
+  start_ = start;
+}
+
+void LPlanner::setGoalPoint(Point goal) {
+  goal_ = goal;
+}
+
+void LPlanner::setStartGoal(Point start, Point goal) {
+  start_ = start;
+  goal_ = goal;
+  is_set_goal_ = true;
+}
+
+void LPlanner::setCurrentPosition(Point point) {
+  current_pos_ = point;
+  std::cout << "Set CurrentPosition x: " << current_pos_.x << " y: " << current_pos_.y << " theta: " << current_pos_.theta * 180 / M_PI << std::endl;
+  if(is_set_goal_) {
+    std::cout << "Start x: " << start_.x << " y: " << start_.y << " theta: " << start_.theta * 180 / M_PI << std::endl;
+    std::cout << "Goal x: " << goal_.x << " y: " << goal_.y << " theta: " << goal_.theta * 180 / M_PI << std::endl;
+  }
+}
+
 void LPlanner::setMap(int width, int height, double resolution, Point lower_left, unsigned char* map) {
   width_ = width;
   height_ = height;
   max_x_ = width;
   max_y_ = height;
   resolution_ = resolution;
-
-  o_map_ = rawmap_to_node(lower_left, map);
+  o_map_ = rawmap_to_point(lower_left, map);
+}
+void LPlanner::setCostMap(int width, int height, double reslution, Point lower_left, unsigned char *map) {
+  ;
 }
 
-std::vector<Node> LPlanner::rawmap_to_node(Point lower_left, unsigned char* map) {
-  std::vector<Node> g_map;
+std::vector<Node> LPlanner::rawmap_to_point(Point lower_left, unsigned char* map) {
+  std::vector<Node> buff_map;
   Node buff;
-
-  lower_left = ConvGridPoint(lower_left);
 
   for(int itr = 0; itr < width_*height_; itr++) {
     if(map[itr] != 0xFF && map[itr] != 0x00) {
       buff.cost = map[itr];
-      buff.x = (int)(lower_left.x) + (int)(itr % width_);
-      buff.y = (int)(lower_left.y) + (int)(itr / width_);
-      g_map.push_back(buff);
+      buff.x = (int)(lower_left.x) + (int)(itr % width_)*resolution_;
+      buff.y = (int)(lower_left.y) + (int)(itr / width_)*resolution_;
+      if(buff.cost>0){
+        buff_map.push_back(buff);
+      }else{}
     }
   }
-  return g_map;
-}
-
-Point LPlanner::ConvGridPoint(Point point) {
-  Point grid_point;
-  grid_point.x = (int)(point.x / resolution_);
-  grid_point.y = (int)(point.y / resolution_);
-  return grid_point;
+  return buff_map;
 }
 
 void LPlanner::SetParams(double v_max, double v_min, double max_acc, double w_max, double w_min, double v_reso, double w_reso, double dtime, double prediction_time) {
@@ -91,16 +109,16 @@ std::vector<State> LPlanner::calc_trajectory(State x,double v,double w){
   return traj;
 }
 
-void LPlanner::calc_final_input(State x, VW u, DW dw, Point goal,std::vector<Point> ob){
+std::vector<Point> LPlanner::calc_final_input(State state, VW u, DW dw, Point goal,std::vector<Node> ob){
   State xinit ={};
   double min_cost = 1000;
   VW min_u = u;
   min_u.v = 0;
-  std::vector<State> best_traj ={x};
+  std::vector<State> best_traj ={state};
 
   for(double v=dw.v_min;v<dw.v_max;v+=v_resolution){
     for(double w = dw.w_min;w<dw.w_max;w+=w_resolution){
-      std::vector<State> traj = calc_trajectory(v,w);
+      std::vector<State> traj = calc_trajectory(state,v,w);
       double to_goal_cost = calc_to_goal_cost(traj,goal);
       double speed_cost = speed_cost_gain*(max_vel-traj[traj.size()-1].v);
       double ob_cost = calc_obstacle_cost(traj,ob);
@@ -112,12 +130,20 @@ void LPlanner::calc_final_input(State x, VW u, DW dw, Point goal,std::vector<Poi
       }else{}
     }
   }
-  v_out = min_u.v;
-  w_out = min_u.w;
-  
+  std::vector<Point> path ={};
+  for(int i =0;i<best_traj.size();i++){
+    Point buff;
+    buff.x = best_traj[i].x;
+    buff.y = best_traj[i].y;
+    buff.theta = best_traj[i].yaw;
+    path.push_back(buff);
+  }
+  vel_out_ = min_u.v;
+  omega_out_ = min_u.w;
+  return path;
 }
 
-double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<Point> ob){
+double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<Node> ob){
   int skip_n = 2;
   float inf = std::numeric_limits<float>::infinity();
   double minr = inf;
@@ -150,9 +176,9 @@ double LPlanner::calc_to_goal_cost(std::vector<State> traj,Point goal){
    return cost;
 }
 
-void LPlanner::dwa_control(double x,double y,double theta, double v, double w,Point goal, std::vector<Point> ob){
-  State state = {x,y,theta,v,w};
+void LPlanner::dwa_control(double v, double w){
+  State state = {start_.x,start_.y,start_.theta,v,w};
   VW u = {v,w};
   DW dw = calc_dynamic_window(state);
-  calc_final_input(state,u,dw,goal,ob);
+  calc_final_input(state,u,dw,goal_,o_map_);
 }

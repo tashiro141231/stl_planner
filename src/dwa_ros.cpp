@@ -31,20 +31,35 @@ void DWA_ROS::setDWAParams(){
 }
 
 void DWA_ROS::setGoal(geometry_msgs::PoseStamped msg) {
-  ;
+  double x,y,theta;
+  geometry_msgs::PoseStamped target;
+  target = msg;
+  x = msg.pose.position.x;
+  y = msg.pose.position.y;
+  theta = quaternion_to_theta(msg.pose.orientation);
+  Point goal;
+  goal.x = x;
+  goal.y = y;
+  goal.theta = theta;
+  lp.setStartGoal(getCurrentPos(), goal);
+  pub_goal_.publish(target);
+  nav_msgs::Path p = path_to_rospath(lp.calc_path_astar(), getGlobalFrame()); //calc path to goal
+
+  PubLocalPath(p);
+  ROS_INFO("outing");
 }
 
 void DWA_ROS::setMap(int width, int height, double resolution, Point lower_left, unsigned char* map) {
-  //dwa.SetMap(width, height, resolution, lower_left, map);
+  dwa.SetMap(width, height, resolution, lower_left, map);
 }
 
 void DWA_ROS::setCostMap(int width, int height, double resolution, Point lower_left, unsigned char* map) {
   ROS_INFO("Konnichiha cost map ha jissou sitenaiyo!!");
-  //dwa.SetCostMap(getCostMapWidth(), getCostMapHeight(), getCostMapResolution(), getCostMapLowerLeft(), getCostgMapRaw());
+  dwa.SetCostMap(getCostMapWidth(), getCostMapHeight(), getCostMapResolution(), getCostMapLowerLeft(), getCostgMapRaw());
 }
 
-void DWA_ROS::setCurrentPositionToPlanner(Point point) {
-  ;
+void AStarROS::PubGlobalPath(nav_msgs::Path path) {
+  pub_dwa_path_.publish(path);
 }
 
 void DWA_ROS::main_loop() {

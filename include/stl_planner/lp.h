@@ -67,30 +67,36 @@ class LPlanner{
         State motion(State x, double v, double w);
         DW calc_dynamic_window(State X);
         std::vector<State> calc_trajectory(State x,double v,double w);
-        std::vector<Point> calc_final_input(State x, VW u, DW dw, Point goal,std::vector<Point> ob);
-        double calc_obstacle_cost(std::vector<State> traj, std::vector<Point> ob);
+        std::vector<Point> calc_final_input(State x, VW u, DW dw, Point goal,std::vector<Node> ob);
+        double calc_obstacle_cost(std::vector<State> traj, std::vector<Node> ob);
         double calc_to_goal_cost(std::vector<State> traj,Point goal);
-        void dwa_control(double x,double y,double theta, double v, double w, Point goal, std::vector<Point> ob);
+        void dwa_control(double v, double w);
         
         //setter
+        void setCurrentPosition(Point point);
         void setStartPoint(Point start);
         void setGoalPoint(Point goal);
         void setStartGoal(Point start, Point goal);
         void setMap(int width, int heihgt, double resolution, Point lower_left, unsigned char* map);
+        void setCostMap(int width, int height, double resolution, Point lower_left, unsigned char *map);
+
         
     private:
-         Point start_;
-         Point goal_;
-         Point centre_;
-         int height_;
-         int width_;
-         double resolution_;
-         int max_x_;
-         int max_y_;
-         std::vector<Point> robot_model_;
-         std::vector<Node> o_map_;
-         double vel_;
-         double omega_;
-         
+        bool is_set_goal_;
+        Point start_;
+        Point goal_;
+        Point centre_;
+        int height_;
+        int width_;
+        double resolution_;
+        int max_x_;
+        int max_y_;
+        std::vector<Point> robot_model_;
+        std::vector<Node> o_map_;
+        double current_vel_;
+        double curren_omega_;
+        double vel_out_;
+        double omega_out_;
+        Point current_pos_;
 };
 

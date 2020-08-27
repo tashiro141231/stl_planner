@@ -17,6 +17,6 @@ class DWA_ROS : PlannerBaseROS {
     void setDWAParams();
 
     ros::Publisher dwa_vw_;
-    ros::Publisher dwa_path_;
+    ros::Publisher pub_dwa_path_;
 };
 

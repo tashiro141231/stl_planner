@@ -67,7 +67,7 @@ class LPlanner{
         State motion(State x, double v, double w);
         DW calc_dynamic_window(State X);
         std::vector<State> calc_trajectory(State x,double v,double w);
-        std::vector<Point> calc_final_input(State x, VW u, DW dw, Point goal,std::vector<Node> ob);
+        std::vector<Point> calc_path_dwa(State x, VW u, DW dw, Point goal,std::vector<Node> ob);
         double calc_obstacle_cost(std::vector<State> traj, std::vector<Node> ob);
         double calc_to_goal_cost(std::vector<State> traj,Point goal);
         void dwa_control(double v, double w);

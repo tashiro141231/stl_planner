@@ -109,7 +109,7 @@ std::vector<State> LPlanner::calc_trajectory(State x,double v,double w){
   return traj;
 }
 
-std::vector<Point> LPlanner::calc_final_input(State state, VW u, DW dw, Point goal,std::vector<Node> ob){
+std::vector<Point> LPlanner::calc_path_dwa(State state, VW u, DW dw, Point goal,std::vector<Node> ob){
   State xinit ={};
   double min_cost = 1000;
   VW min_u = u;
@@ -177,8 +177,8 @@ double LPlanner::calc_to_goal_cost(std::vector<State> traj,Point goal){
 }
 
 void LPlanner::dwa_control(double v, double w){
-  State state = {start_.x,start_.y,start_.theta,v,w};
+  State state = {current_pos_.x,current_pos_.y,current_pos_.theta,v,w};
   VW u = {v,w};
   DW dw = calc_dynamic_window(state);
-  calc_final_input(state,u,dw,goal_,o_map_);
+  calc_path_dwa(state,u,dw,goal_,o_map_);
 }

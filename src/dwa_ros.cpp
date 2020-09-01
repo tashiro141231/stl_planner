@@ -58,7 +58,11 @@ void DWA_ROS::setCostMap(int width, int height, double resolution, Point lower_l
   dwa.SetCostMap(getCostMapWidth(), getCostMapHeight(), getCostMapResolution(), getCostMapLowerLeft(), getCostgMapRaw());
 }
 
-void AStarROS::PubGlobalPath(nav_msgs::Path path) {
+void DWA_ROS::setCurrentPositionToPlanner(Point point) {
+  lp.setCurrentPosition(point);
+}
+
+void DWA_ROS::PubGlobalPath(nav_msgs::Path path) {
   pub_dwa_path_.publish(path);
 }
 

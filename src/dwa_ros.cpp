@@ -41,9 +41,9 @@ void DWA_ROS::setGoal(geometry_msgs::PoseStamped msg) {
   goal.x = x;
   goal.y = y;
   goal.theta = theta;
-  lp.setStartGoal(getCurrentPos(), goal);
+  dwa.setStartGoal(getCurrentPos(), goal);
   pub_goal_.publish(target);
-  nav_msgs::Path p = path_to_rospath(lp.calc_path_astar(), getGlobalFrame()); //calc path to goal
+  nav_msgs::Path p = path_to_rospath(dwa.calc_path_dwa(), getGlobalFrame()); //calc path to goal
 
   PubLocalPath(p);
   ROS_INFO("outing");
@@ -59,19 +59,37 @@ void DWA_ROS::setCostMap(int width, int height, double resolution, Point lower_l
 }
 
 void DWA_ROS::setCurrentPositionToPlanner(Point point) {
-  lp.setCurrentPosition(point);
+  dwa.setCurrentPosition(point);
 }
 
-void DWA_ROS::PubGlobalPath(nav_msgs::Path path) {
+void DWA_ROS::PubLocalPath(nav_msgs::Path path) {
   pub_dwa_path_.publish(path);
+}
+
+void LPlannerROS::PubGlobalPath(nav_msgs::Path path) {
+  pub_gp_.publish(path);
+}
+
+void LPlannerROS::PubVelOmgOutput(double v, double w) {
+  geometry_msgs::Twist out;
+  out.linear.x = v;
+  out.angular.z = w;
+  pub_dwa_vw_.publish(out);
 }
 
 void DWA_ROS::main_loop() {
   ros::Rate loop_rate(getLoopRate());
   while(ros::ok()) {
-    UpdateCurrentPosition();
+  UpdateCurrentPosition();
+    if(dwa.goalCheck()) {
+      PubVelOmgOutput(0,0);
+    }
     ros::spinOnce();
-    // lp.calc_path();
+    if(dwa.UpdateVW()) {
+      V = dwa.getVelOut();
+      W = dwa.getOmgOut();
+      PubVelOmgOutput(V, W);
+    }
     loop_rate.sleep();
   }
 }

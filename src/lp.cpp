@@ -140,6 +140,8 @@ std::vector<Point> LPlanner::calc_path_dwa(State state, VW u, DW dw, Point goal,
   }
   vel_out_ = min_u.v;
   omega_out_ = min_u.w;
+  current_vel_ = min_u.v;
+  current_omega_ = min_u.w;
   return path;
 }
 
@@ -181,4 +183,27 @@ void LPlanner::dwa_control(double v, double w){
   VW u = {v,w};
   DW dw = calc_dynamic_window(state);
   calc_path_dwa(state,u,dw,goal_,o_map_);
+}
+
+double LPlanner::getVelOut() {
+  return current_vel_;
+}
+
+double LPlanner::getOmgOut() {
+  return current_omega_;
+}
+
+bool LPlanner::isRobotPlannning() {
+  return is_set_goal_;
+}
+
+bool LPlanner::goalCheck() {
+  if(is_set_goal_) {
+    double dis = hypot((current_pos_.x - goal_.x), (current_pos_.y - goal_.y));
+    if(dis < 0.2) {
+      is_set_goal_ = false;
+      return true;
+    }
+  }
+  return false;
 }

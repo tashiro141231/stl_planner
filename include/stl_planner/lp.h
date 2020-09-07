@@ -52,11 +52,7 @@ class LPlanner{
         double robot_radius = 0.3;
 
         LPlanner();
-        void Initialize(double _sx,double _sy, double _gx, double _gy) {
-            start_.x = _sx;
-            start_.y = _sy;
-            goal_.x = _gx;
-            goal_.y = _gy;
+        void Initialize(){
         }
         ~LPlanner(){
         }
@@ -71,7 +67,9 @@ class LPlanner{
         double calc_obstacle_cost(std::vector<State> traj, std::vector<Node> ob);
         double calc_to_goal_cost(std::vector<State> traj,Point goal);
         void dwa_control(double v, double w);
-        
+        bool UpdateVW();
+        bool goalCheck();
+
         //setter
         void setCurrentPosition(Point point);
         void setStartPoint(Point start);
@@ -79,7 +77,10 @@ class LPlanner{
         void setStartGoal(Point start, Point goal);
         void setMap(int width, int heihgt, double resolution, Point lower_left, unsigned char* map);
         void setCostMap(int width, int height, double resolution, Point lower_left, unsigned char *map);
-
+        //getter
+        bool isRobotPlannning();
+        double getVelOut();
+        double getOmgOut();
         
     private:
         bool is_set_goal_;
@@ -94,7 +95,7 @@ class LPlanner{
         std::vector<Point> robot_model_;
         std::vector<Node> o_map_;
         double current_vel_;
-        double curren_omega_;
+        double current_omega_;
         double vel_out_;
         double omega_out_;
         Point current_pos_;

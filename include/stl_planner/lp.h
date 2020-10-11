@@ -59,7 +59,6 @@ class LPlanner{
 
         void SetParams(double v_max, double v_min, double max_acc, double w_max, double w_min, double v_reso, double w_reso, double dtime, double prediction_time);
         std::vector<Node> rawmap_to_point(Point lower_left, unsigned char* map);
-        void setMap(int width, int heihgt, double resolution, Point lower_left, unsigned char* map);
         State motion(State x, double v, double w);
         DW calc_dynamic_window(State X);
         std::vector<State> calc_trajectory(State x,double v,double w);
@@ -75,7 +74,7 @@ class LPlanner{
         void setStartPoint(Point start);
         void setGoalPoint(Point goal);
         void setStartGoal(Point start, Point goal);
-        void setMap(int width, int heihgt, double resolution, Point lower_left, unsigned char* map);
+        void setMap(int width, int height, double resolution, Point lower_left, unsigned char *map);
         void setCostMap(int width, int height, double resolution, Point lower_left, unsigned char *map);
         //getter
         bool isRobotPlannning();

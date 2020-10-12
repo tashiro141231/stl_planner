@@ -109,7 +109,7 @@ std::vector<State> LPlanner::calc_trajectory(State x,double v,double w){
   return traj;
 }
 
-std::vector<Point> LPlanner::calc_path_dwa(State state, VW u, DW dw, Point goal,std::vector<Node> ob){
+void LPlanner::calc_path_dwa(State state, VW u, DW dw, Point goal,std::vector<Node> ob){
   State xinit ={};
   double min_cost = 1000;
   VW min_u = u;
@@ -142,8 +142,13 @@ std::vector<Point> LPlanner::calc_path_dwa(State state, VW u, DW dw, Point goal,
   omega_out_ = min_u.w;
   current_vel_ = min_u.v;
   current_omega_ = min_u.w;
-  return path;
+  current_path_=path;
 }
+
+std::vector<Point> LPlanner::getPath(){
+  return current_path_;
+}
+
 
 double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<Node> ob){
   int skip_n = 2;

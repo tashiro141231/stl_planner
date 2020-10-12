@@ -43,7 +43,7 @@ void DWA_ROS::setGoal(geometry_msgs::PoseStamped msg) {
   goal.theta = theta;
   dwa.setStartGoal(getCurrentPos(), goal);
   pub_goal_.publish(target);
-  nav_msgs::Path p = path_to_rospath(dwa.calc_path_dwa(), getGlobalFrame()); //calc path to goal
+  nav_msgs::Path p = path_to_rospath(dwa.getPath(), getGlobalFrame()); //calc path to goal
 
   PubLocalPath(p);
   ROS_INFO("outing");

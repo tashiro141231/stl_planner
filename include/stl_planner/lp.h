@@ -62,7 +62,7 @@ class LPlanner{
         State motion(State x, double v, double w);
         DW calc_dynamic_window(State X);
         std::vector<State> calc_trajectory(State x,double v,double w);
-        std::vector<Point> calc_path_dwa(State x, VW u, DW dw, Point goal,std::vector<Node> ob);
+        void calc_path_dwa(State x, VW u, DW dw, Point goal,std::vector<Node> ob);
         double calc_obstacle_cost(std::vector<State> traj, std::vector<Node> ob);
         double calc_to_goal_cost(std::vector<State> traj,Point goal);
         void dwa_control(double v, double w);
@@ -80,7 +80,8 @@ class LPlanner{
         bool isRobotPlannning();
         double getVelOut();
         double getOmgOut();
-        
+        std::vector<Point> getPath();
+
     private:
         bool is_set_goal_;
         Point start_;
@@ -95,6 +96,7 @@ class LPlanner{
         std::vector<Node> o_map_;
         double current_vel_;
         double current_omega_;
+        std::vector<Point> current_path_;
         double vel_out_;
         double omega_out_;
         Point current_pos_;

@@ -50,12 +50,12 @@ void DWA_ROS::setGoal(geometry_msgs::PoseStamped msg) {
 }
 
 void DWA_ROS::setMap(int width, int height, double resolution, Point lower_left, unsigned char* map) {
-  dwa.SetMap(width, height, resolution, lower_left, map);
+  dwa.setMap(width, height, resolution, lower_left, map);
 }
 
 void DWA_ROS::setCostMap(int width, int height, double resolution, Point lower_left, unsigned char* map) {
   ROS_INFO("Konnichiha cost map ha jissou sitenaiyo!!");
-  dwa.SetCostMap(getCostMapWidth(), getCostMapHeight(), getCostMapResolution(), getCostMapLowerLeft(), getCostgMapRaw());
+  dwa.setCostMap(getCostMapWidth(), getCostMapHeight(), getCostMapResolution(), getCostMapLowerLeft(), getCostMapRaw());
 }
 
 void DWA_ROS::setCurrentPositionToPlanner(Point point) {
@@ -66,11 +66,11 @@ void DWA_ROS::PubLocalPath(nav_msgs::Path path) {
   pub_dwa_path_.publish(path);
 }
 
-void LPlannerROS::PubGlobalPath(nav_msgs::Path path) {
+void DWA_ROS::PubGlobalPath(nav_msgs::Path path) {
   pub_gp_.publish(path);
 }
 
-void LPlannerROS::PubVelOmgOutput(double v, double w) {
+void DWA_ROS::PubVelOmgOutput(double v, double w) {
   geometry_msgs::Twist out;
   out.linear.x = v;
   out.angular.z = w;
@@ -79,6 +79,8 @@ void LPlannerROS::PubVelOmgOutput(double v, double w) {
 
 void DWA_ROS::main_loop() {
   ros::Rate loop_rate(getLoopRate());
+  double V=0;
+  double W=0;
   while(ros::ok()) {
   UpdateCurrentPosition();
     if(dwa.goalCheck()) {

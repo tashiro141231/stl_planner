@@ -81,6 +81,15 @@ State LPlanner::motion(State x, double v, double w){
   return x;
 }
 
+bool LPlanner::UpdateVW() {
+  if(is_set_goal_) {
+    dwa_control(current_vel_,current_omega_); 
+    std::cout << "V: " << current_vel_ << " W: " << current_omega_ << std::endl;
+    return true;
+  }
+  return false;
+}
+
 DW LPlanner::calc_dynamic_window(State state){
     //Dynamic window from robot specification
   std::vector<double> Vs ={min_vel, max_vel,

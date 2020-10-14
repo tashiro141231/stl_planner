@@ -29,10 +29,6 @@ typedef struct DW {
     double w_max;
 }DW;
 
-typedef struct VW{
-    double v;
-    double w;
-}VW;
 
 class LPlanner{
     public:
@@ -62,10 +58,10 @@ class LPlanner{
         State motion(State x, double v, double w);
         DW calc_dynamic_window(State X);
         std::vector<State> calc_trajectory(State x,double v,double w);
-        void calc_path_dwa(State x, VW u, DW dw, Point goal,std::vector<Node> ob);
+        void calc_path_dwa(State x, DW dw, Point goal,std::vector<Node> ob);
         double calc_obstacle_cost(std::vector<State> traj, std::vector<Node> ob);
         double calc_to_goal_cost(std::vector<State> traj,Point goal);
-        void dwa_control(double v, double w);
+        void dwa_control();
         bool UpdateVW();
         bool goalCheck();
 

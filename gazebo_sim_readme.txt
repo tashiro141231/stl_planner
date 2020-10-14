@@ -1,7 +1,7 @@
 $ roslaunch turtlebot3_gazebo  turtlebot3_world.launch 
 Simulator setup and turtlebot's tf start publishing(GUI off)
 
-$ roslaunch stl_planner turtlot_localization.launch
+$ roslaunch stl_planner turtlebot_localization.launch
 start localization (amcl) and move_base won't start.
 
 Then you can debag your planner with v, omega.

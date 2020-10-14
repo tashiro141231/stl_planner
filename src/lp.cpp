@@ -83,7 +83,7 @@ State LPlanner::motion(State x, double v, double w){
 
 bool LPlanner::UpdateVW() {
   if(is_set_goal_) {
-    dwa_control(current_vel_,current_omega_); 
+    dwa_control(); 
     std::cout << "V: " << current_vel_ << " W: " << current_omega_ << std::endl;
     return true;
   }
@@ -118,11 +118,11 @@ std::vector<State> LPlanner::calc_trajectory(State x,double v,double w){
   return traj;
 }
 
-void LPlanner::calc_path_dwa(State state, VW u, DW dw, Point goal,std::vector<Node> ob){
+void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<Node> ob){
   State xinit ={};
-  double min_cost = 1000;
-  VW min_u = u;
-  min_u.v = 0;
+  double cost_min = 1000;
+  double v_min = 0;//current_vel?
+  double w_min = 0;//current_omega?
   std::vector<State> best_traj ={state};
 
   for(double v=dw.v_min;v<dw.v_max;v+=v_resolution){
@@ -131,10 +131,11 @@ void LPlanner::calc_path_dwa(State state, VW u, DW dw, Point goal,std::vector<No
       double to_goal_cost = calc_to_goal_cost(traj,goal);
       double speed_cost = speed_cost_gain*(max_vel-traj[traj.size()-1].v);
       double ob_cost = calc_obstacle_cost(traj,ob);
-      double final_cost = to_goal_cost+speed_cost+ob_cost;
-      if (min_cost >= final_cost){
-        min_cost = final_cost;
-        min_u = {v,w};
+      double cost_final = to_goal_cost+speed_cost+ob_cost;
+      if (cost_min >= cost_final){
+        cost_min = cost_final;
+        v_min = v;
+        w_min = w;
         best_traj = traj;
       }else{}
     }
@@ -147,10 +148,10 @@ void LPlanner::calc_path_dwa(State state, VW u, DW dw, Point goal,std::vector<No
     buff.theta = best_traj[i].yaw;
     path.push_back(buff);
   }
-  vel_out_ = min_u.v;
-  omega_out_ = min_u.w;
-  current_vel_ = min_u.v;
-  current_omega_ = min_u.w;
+  vel_out_ = v_min;
+  omega_out_ = w_min;
+  current_vel_ = v_min;
+  current_omega_ = w_min;
   current_path_=path;
 }
 
@@ -192,11 +193,10 @@ double LPlanner::calc_to_goal_cost(std::vector<State> traj,Point goal){
    return cost;
 }
 
-void LPlanner::dwa_control(double v, double w){
-  State state = {current_pos_.x,current_pos_.y,current_pos_.theta,v,w};
-  VW u = {v,w};
+void LPlanner::dwa_control(){
+  State state = {current_pos_.x,current_pos_.y,current_pos_.theta,current_vel_,current_omega_};
   DW dw = calc_dynamic_window(state);
-  calc_path_dwa(state,u,dw,goal_,o_map_);
+  calc_path_dwa(state,dw,goal_,o_map_);
 }
 
 double LPlanner::getVelOut() {

@@ -1,9 +1,9 @@
+  <launch>
   <!-- Arguments -->
   <arg name="map_file" default="$(find stl_planner)/maps/map.yaml"/>
 
   <!-- move_base -->
   <node pkg="stl_planner" name="line_planner_ros" type="line_planner_ros" output="screen">
-    <rosparam command="load" file="$(find stl_planner)/config/stl_planner_config.yaml"/>
   </node>
 
   <!-- Map server -->

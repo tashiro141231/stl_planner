@@ -8,9 +8,9 @@ class DWA_ROS : PlannerBaseROS {
     DWA_ROS(tf2_ros::Buffer& tf);
     LPlanner dwa;
     void main_loop();
+    void PlannerInitialize();
   
   private:
-    void setDWAParams();
     void setMap(int width, int height, double resolution, Point lower_left, unsigned char* map);
     void setCostMap(int width, int height, double resolution, Point lower_left, unsigned char* map);
     void setGoal(geometry_msgs::PoseStamped msg);
@@ -19,6 +19,7 @@ class DWA_ROS : PlannerBaseROS {
     void PubGlobalPath(nav_msgs::Path path);
     void PubVelOmgOutput(double v, double w);
   
+    bool planner_initialized_;
 
     ros::Publisher pub_dwa_vw_;
     ros::Publisher pub_gp_;

@@ -23,11 +23,21 @@
 
 DWA_ROS::DWA_ROS(tf2_ros::Buffer& tf) : PlannerBaseROS(tf)
  {
-  Initialize();
+   planner_initialized_ = false;
+  PlannerInitialize();
 }
 
-void DWA_ROS::setDWAParams(){
-  ;
+void DWA_ROS::PlannerInitialize() {
+  if(!planner_initialized_) {
+    ros::NodeHandle nh;
+    ros::NodeHandle private_nh("~");
+    pub_gp_ = nh.advertise<nav_msgs::Path>("dwa_global_path", 1000);
+    pub_dwa_vw_ = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1); 
+    pub_goal_ = nh.advertise<geometry_msgs::PoseStamped>("dwa_planner/goal", 1);
+    pub_dwa_path_ = nh.advertise<nav_msgs::Path>("dwa_local_path", 1000);
+
+    planner_initialized_ = true;
+  }
 }
 
 void DWA_ROS::setGoal(geometry_msgs::PoseStamped msg) {
@@ -82,15 +92,24 @@ void DWA_ROS::main_loop() {
   double V=0;
   double W=0;
   while(ros::ok()) {
+    std::cout<<"v= " <<V <<"  w= " << W<<std::endl;
   UpdateCurrentPosition();
+    std::cout<<"goal_check"<<std::endl;
     if(dwa.goalCheck()) {
+      std::cout<<"goal_set"<<std::endl;
       PubVelOmgOutput(0,0);
+    }else{
+      std::cout<<"goal_is_not_set"<<std::endl;
     }
     ros::spinOnce();
+    std::cout<<"vw_update_check"<<std::endl;
     if(dwa.UpdateVW()) {
+      std::cout<<"vw_updated"<<std::endl;
       V = dwa.getVelOut();
       W = dwa.getOmgOut();
       PubVelOmgOutput(V, W);
+    }else{
+      std::cout<<"vw_is_not_updated"<<std::endl;
     }
     loop_rate.sleep();
   }

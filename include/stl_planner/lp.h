@@ -45,7 +45,8 @@ class LPlanner{
         double predict_time =3.0;
         double to_goal_cost_gain =1.0;
         double speed_cost_gain = 1.0;
-        double robot_radius = 0.3;
+        double ob_cost_gain = 1.0;
+        double robot_radius = 0.2;
 
         LPlanner();
         void Initialize(){

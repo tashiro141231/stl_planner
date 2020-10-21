@@ -7,7 +7,7 @@
 #include "stl_planner/lp.h"
 
 LPlanner::LPlanner(){
-  ;
+  current_path_ = {{0,0,0}};
 }
 
 void LPlanner::setStartPoint(Point start) {
@@ -124,22 +124,26 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<Node> ob
   double v_min = 0;//current_vel?
   double w_min = 0;//current_omega?
   std::vector<State> best_traj ={state};
-
+  double to_goal_min,speed_min,ob_min;
   for(double v=dw.v_min;v<dw.v_max;v+=v_resolution){
     for(double w = dw.w_min;w<dw.w_max;w+=w_resolution){
       std::vector<State> traj = calc_trajectory(state,v,w);
-      double to_goal_cost = calc_to_goal_cost(traj,goal);
+      double to_goal_cost = to_goal_cost_gain*calc_to_goal_cost(traj,goal);
       double speed_cost = speed_cost_gain*(max_vel-traj[traj.size()-1].v);
-      double ob_cost = calc_obstacle_cost(traj,ob);
+      double ob_cost = ob_cost_gain*calc_obstacle_cost(traj,ob);
       double cost_final = to_goal_cost+speed_cost+ob_cost;
       if (cost_min >= cost_final){
         cost_min = cost_final;
+        to_goal_min = to_goal_cost;
+        speed_min = speed_cost;
+        ob_min = ob_cost;
         v_min = v;
         w_min = w;
         best_traj = traj;
       }else{}
     }
   }
+  std::cout<<"goal:"<<to_goal_min<<" speed:"<<speed_min<<" ob:"<<ob_min<<std::endl;
   std::vector<Point> path ={};
   for(int i =0;i<best_traj.size();i++){
     Point buff;
@@ -178,6 +182,8 @@ double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<Node> o
       } else{}
     }
   }
+  if(minr<robot_radius)
+  minr = 0.0001;
   return 1.0/minr;
 }
 
@@ -189,8 +195,7 @@ double LPlanner::calc_to_goal_cost(std::vector<State> traj,Point goal){
    double dot_product = (goal.x*traj_x) + (goal.y*traj_y);
    double error = dot_product / (goal_magnitude*traj_magnitude);
    double error_angle = std::acos(error);
-   double cost = to_goal_cost_gain * error_angle;
-   return cost;
+   return std::abs(error_angle);
 }
 
 void LPlanner::dwa_control(){

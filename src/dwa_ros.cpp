@@ -94,22 +94,23 @@ void DWA_ROS::main_loop() {
   while(ros::ok()) {
     std::cout<<"v= " <<V <<"  w= " << W<<std::endl;
   UpdateCurrentPosition();
-    std::cout<<"goal_check"<<std::endl;
     if(dwa.goalCheck()) {
-      std::cout<<"goal_set"<<std::endl;
       PubVelOmgOutput(0,0);
     }else{
-      std::cout<<"goal_is_not_set"<<std::endl;
     }
     ros::spinOnce();
     std::cout<<"vw_update_check"<<std::endl;
     if(dwa.UpdateVW()) {
-      std::cout<<"vw_updated"<<std::endl;
+      std::cout<<"running"<<std::endl;
+      //nav_msgs::Path p = path_to_rospath(dwa.getPath(), getGlobalFrame());
+      //PubLocalPath(p);
       V = dwa.getVelOut();
       W = dwa.getOmgOut();
       PubVelOmgOutput(V, W);
     }else{
-      std::cout<<"vw_is_not_updated"<<std::endl;
+      PubVelOmgOutput(0,0);
+      std::cout<<"stop"<<std::endl;
+      std::cout<<"robot radius"<<dwa.robot_radius<<std::endl;
     }
     loop_rate.sleep();
   }

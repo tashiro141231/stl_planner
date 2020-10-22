@@ -33,26 +33,14 @@ typedef struct DW {
 class LPlanner{
     public:
         
-        double max_vel = 1.0;//[m/s]
-        double min_vel = 0;
-        double max_w = 40*M_PI/180;//[rad/s]
-        double min_w = -max_w;
-        double max_dw = 40*M_PI/180;//[rad/ss]
-        double max_accel = 0.2;//[m/ss]
-        double v_resolution=0.01;
-        double w_resolution=1*M_PI/180;
-        double dt = 0.1;
-        double predict_time =3.0;
-        double to_goal_cost_gain =1.0;
-        double speed_cost_gain = 1.0;
-        double ob_cost_gain = 1.0;
-        double robot_radius = 0.2;
 
         LPlanner();
-        void Initialize(){
-        }
         ~LPlanner(){
         }
+
+        void Initialize(double max_vel, double min_vel, double max_acc, double max_w, double min_w, 
+            double max_dw, double dt, double v_resolution, double w_resolution, double predict_time, 
+            double goal_gain, double speed_gain, double ob_gain, double robot_radius) ;
 
         void SetParams(double v_max, double v_min, double max_acc, double w_max, double w_min, double v_reso, double w_reso, double dtime, double prediction_time);
         std::vector<Node> rawmap_to_point(Point lower_left, unsigned char* map);
@@ -97,5 +85,21 @@ class LPlanner{
         double vel_out_;
         double omega_out_;
         Point current_pos_;
+        
+        //initialized
+        double max_vel_ ;//[m/s]
+        double min_vel_ ;
+        double max_w_ ;//[rad/s]
+        double min_w_ ;
+        double max_dw_;//[rad/ss]
+        double max_acc_;//[m/ss]
+        double v_resolution_;
+        double w_resolution_;
+        double dt_;
+        double predict_time_;
+        double goal_gain_ ;
+        double speed_gain_ ;
+        double ob_gain_ ;
+        double robot_radius_ ;
 };
 

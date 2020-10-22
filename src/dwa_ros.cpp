@@ -36,6 +36,31 @@ void DWA_ROS::PlannerInitialize() {
     pub_goal_ = nh.advertise<geometry_msgs::PoseStamped>("dwa_planner/goal", 1);
     pub_dwa_path_ = nh.advertise<nav_msgs::Path>("dwa_local_path", 1000);
 
+
+    double max_vel, min_vel, max_acc, max_w, min_w, max_dw, dt;
+    double v_resolution, w_resolution, predict_time;
+    double goal_gain, speed_gain, ob_gain, robot_radius;
+
+    private_nh.getParam("dwa/max_vel", max_vel);
+    private_nh.getParam("dwa/min_vel", min_vel);
+    private_nh.getParam("dwa/max_acc", max_acc);
+    private_nh.getParam("dwa/max_w", max_w);
+    private_nh.getParam("dwa/min_w", min_w);
+    private_nh.getParam("dwa/max_dw", max_dw);
+    private_nh.getParam("dwa/dt", dt);
+    private_nh.getParam("dwa/v_resolution", v_resolution);
+    private_nh.getParam("dwa/w_resolution", w_resolution);
+    private_nh.getParam("dwa/predict_time", predict_time);
+    private_nh.getParam("dwa/goal_gain", goal_gain);
+    private_nh.getParam("dwa/speed_gain", speed_gain);
+    private_nh.getParam("dwa/ob_gain", ob_gain);
+    private_nh.getParam("dwa/robot_radius", robot_radius);
+
+
+    dwa.Initialize(max_vel, min_vel, max_acc, max_w, min_w, 
+            max_dw, dt, v_resolution, w_resolution, predict_time, 
+            goal_gain, speed_gain, ob_gain, robot_radius) ;
+
     planner_initialized_ = true;
   }
 }
@@ -110,7 +135,6 @@ void DWA_ROS::main_loop() {
     }else{
       PubVelOmgOutput(0,0);
       std::cout<<"stop"<<std::endl;
-      std::cout<<"robot radius"<<dwa.robot_radius<<std::endl;
     }
     loop_rate.sleep();
   }

@@ -10,6 +10,28 @@ LPlanner::LPlanner(){
   current_path_ = {{0,0,0}};
 }
 
+void LPlanner::Initialize(double max_vel, double min_vel, double max_acc, double max_w, double min_w, 
+  double max_dw, double dt, double v_resolution, double w_resolution, double predict_time, 
+  double goal_gain, double speed_gain, double ob_gain, double robot_radius) {
+  is_set_goal_ = false;
+   max_vel_ = max_vel;//[m/s]
+   min_vel_ = min_vel;
+  max_acc_ = max_acc;
+
+  max_w_ = max_w;//[rad/s]
+  min_w_ = min_w;
+  max_dw_ = max_dw;//[rad/ss]
+  v_resolution_ = v_resolution;
+  w_resolution_ = w_resolution;
+  dt_ =dt;;
+  predict_time_ = predict_time;
+  goal_gain_ = goal_gain;
+  speed_gain_ = speed_gain;
+  ob_gain_  = ob_gain;
+  robot_radius_ = robot_radius;
+}
+
+
 void LPlanner::setStartPoint(Point start) {
   start_ = start;
 }
@@ -63,19 +85,19 @@ std::vector<Node> LPlanner::rawmap_to_point(Point lower_left, unsigned char* map
 }
 
 void LPlanner::SetParams(double v_max, double v_min, double max_acc, double w_max, double w_min, double v_reso, double w_reso, double dtime, double prediction_time) {
-  max_vel = v_max;
-  min_vel = v_min;
-  max_w = w_max;
-  min_w = w_min;
-  max_accel = max_acc;
-  dt = dtime;
-  predict_time = prediction_time;
+  max_vel_ = v_max;
+  min_vel_ = v_min;
+  max_w_ = w_max;
+  min_w_ = w_min;
+  max_acc_ = max_acc;
+  dt_ = dtime;
+  predict_time_ = prediction_time;
 }
 
 State LPlanner::motion(State x, double v, double w){
-  x.yaw += w * dt;
-  x.x += v * cos(x.yaw) * dt;
-  x.y += v * sin(x.yaw) * dt;
+  x.yaw += w * dt_;
+  x.x += v * cos(x.yaw) * dt_;
+  x.y += v * sin(x.yaw) * dt_;
   x.v = v;
   x.w = w;
   return x;
@@ -92,13 +114,13 @@ bool LPlanner::UpdateVW() {
 
 DW LPlanner::calc_dynamic_window(State state){
     //Dynamic window from robot specification
-  std::vector<double> Vs ={min_vel, max_vel,
-          min_w, max_w};
+  std::vector<double> Vs ={min_vel_, max_vel_,
+          min_w_, max_w_};
     //Dynamic window from motion model
-  std::vector<double> Vd = {state.v - max_accel * dt,
-        state.v + max_accel * dt,
-        state.w - max_dw * dt,
-        state.w + max_dw * dt};
+  std::vector<double> Vd = {state.v - max_acc_ * dt_,
+        state.v + max_acc_ * dt_,
+        state.w - max_dw_ * dt_,
+        state.w + max_dw_ * dt_};
     
     //[vmin,vmax, yawrate min, yawrate max]
    DW dw = {std::max(Vs[0], Vd[0]), std::min(Vs[1], Vd[1]),
@@ -110,10 +132,10 @@ std::vector<State> LPlanner::calc_trajectory(State x,double v,double w){
   std::vector<State> traj ={};
   State x_ = x;
   double time = 0;
-  while(time<=predict_time){
+  while(time<=predict_time_){
      x_ = motion(x_,v,w);
      traj.push_back(x_);
-     time += dt;
+     time += dt_;
   }
   return traj;
 }
@@ -125,12 +147,15 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<Node> ob
   double w_min = 0;//current_omega?
   std::vector<State> best_traj ={state};
   double to_goal_min,speed_min,ob_min;
-  for(double v=dw.v_min;v<dw.v_max;v+=v_resolution){
-    for(double w = dw.w_min;w<dw.w_max;w+=w_resolution){
+
+  std::cout<<"w_max:"<<dw.w_max<<" w_min:"<<dw.w_min<<std::endl;
+
+  for(double v=dw.v_min;v<dw.v_max;v+=v_resolution_){
+    for(double w = dw.w_min;w<dw.w_max;w+=w_resolution_){
       std::vector<State> traj = calc_trajectory(state,v,w);
-      double to_goal_cost = to_goal_cost_gain*calc_to_goal_cost(traj,goal);
-      double speed_cost = speed_cost_gain*(max_vel-traj[traj.size()-1].v);
-      double ob_cost = ob_cost_gain*calc_obstacle_cost(traj,ob);
+      double to_goal_cost = goal_gain_*calc_to_goal_cost(traj,goal);
+      double speed_cost = speed_gain_*(max_vel_-traj[traj.size()-1].v);
+      double ob_cost = ob_gain_*calc_obstacle_cost(traj,ob);
       double cost_final = to_goal_cost+speed_cost+ob_cost;
       if (cost_min >= cost_final){
         cost_min = cost_final;
@@ -174,7 +199,7 @@ double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<Node> o
       double dy = traj[ii].y-ob[i].y;
 
       double r = sqrt(std::pow(dx,2)+std::pow(dy,2));
-      if (r<=robot_radius){
+      if (r<=robot_radius_){
         return inf;
       }else{}
       if(minr>=r){
@@ -182,7 +207,7 @@ double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<Node> o
       } else{}
     }
   }
-  if(minr<robot_radius)
+  if(minr<robot_radius_)
   minr = 0.0001;
   return 1.0/minr;
 }
@@ -195,7 +220,7 @@ double LPlanner::calc_to_goal_cost(std::vector<State> traj,Point goal){
    double dot_product = (goal.x*traj_x) + (goal.y*traj_y);
    double error = dot_product / (goal_magnitude*traj_magnitude);
    double error_angle = std::acos(error);
-   return std::abs(error_angle);
+   return error_angle;
 }
 
 void LPlanner::dwa_control(){

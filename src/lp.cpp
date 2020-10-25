@@ -23,7 +23,7 @@ void LPlanner::Initialize(double max_vel, double min_vel, double max_acc, double
   max_dw_ = max_dw;//[rad/ss]
   v_resolution_ = v_resolution;
   w_resolution_ = w_resolution;
-  dt_ =dt;;
+  dt_ =dt;
   predict_time_ = predict_time;
   goal_gain_ = goal_gain;
   speed_gain_ = speed_gain;

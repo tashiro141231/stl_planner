@@ -5,6 +5,7 @@
  * @date 2020.04.28
 */
 #include "stl_planner/lp.h"
+#include <algorithm>
 
 LPlanner::LPlanner(){
   current_path_ = {{0,0,0}};
@@ -142,24 +143,29 @@ std::vector<State> LPlanner::calc_trajectory(State x,double v,double w){
 
 void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<Node> ob){
   State xinit ={};
-  double cost_min = 1000;
+  double cost_limit = 10000000;
+  double cost_min;
+  cost_min = cost_limit;
   double v_min = 0;//current_vel?
   double w_min = 0;//current_omega?
   std::vector<State> best_traj ={state};
   double to_goal_min,speed_min,ob_min;
+  double goal_cost,speed_cost,ob_cost,cost_final;
+  std::vector<State> traj ;
 
   std::cout<<"w_max:"<<dw.w_max<<" w_min:"<<dw.w_min<<std::endl;
-
+  double limit = 0.0001;
   for(double v=dw.v_min;v<dw.v_max;v+=v_resolution_){
     for(double w = dw.w_min;w<dw.w_max;w+=w_resolution_){
-      std::vector<State> traj = calc_trajectory(state,v,w);
-      double to_goal_cost = goal_gain_*calc_to_goal_cost(traj,goal);
-      double speed_cost = speed_gain_*(max_vel_-traj[traj.size()-1].v);
-      double ob_cost = ob_gain_*calc_obstacle_cost(traj,ob);
-      double cost_final = to_goal_cost+speed_cost+ob_cost;
+      traj = calc_trajectory(state,v,w);
+      goal_cost = std::max(goal_gain_*calc_to_goal_cost(traj,goal),limit);
+      //speed_cost = speed_gain_*(max_vel_-traj[traj.size()-1].v);
+      speed_cost = std::max(speed_gain_*(max_vel_-v),limit);
+      ob_cost = std::max(ob_gain_*calc_obstacle_cost(traj,ob),limit);
+      cost_final = goal_cost+speed_cost+ob_cost;
       if (cost_min >= cost_final){
         cost_min = cost_final;
-        to_goal_min = to_goal_cost;
+        to_goal_min = goal_cost;
         speed_min = speed_cost;
         ob_min = ob_cost;
         v_min = v;
@@ -168,6 +174,9 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<Node> ob
       }else{}
     }
   }
+  std::cout<<"speed_gain_"<<speed_gain_<<std::endl;
+  std::cout<<"max_vel_"<<max_vel_<<std::endl;
+  std::cout<<"v_min"<<v_min<<std::endl;
   std::cout<<"goal:"<<to_goal_min<<" speed:"<<speed_min<<" ob:"<<ob_min<<std::endl;
   std::vector<Point> path ={};
   for(int i =0;i<best_traj.size();i++){
@@ -209,7 +218,8 @@ double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<Node> o
   }
   if(minr<robot_radius_)
   minr = 0.0001;
-  return 1.0/minr;
+  double cost= 1/minr;
+  return cost;
 }
 
 double LPlanner::calc_to_goal_cost(std::vector<State> traj,Point goal){
@@ -220,7 +230,8 @@ double LPlanner::calc_to_goal_cost(std::vector<State> traj,Point goal){
    double dot_product = (goal.x*traj_x) + (goal.y*traj_y);
    double error = dot_product / (goal_magnitude*traj_magnitude);
    double error_angle = std::acos(error);
-   return error_angle;
+   double cost = error_angle;
+  return cost;
 }
 
 void LPlanner::dwa_control(){

@@ -86,6 +86,14 @@ class LPlanner{
         double omega_out_;
         Point current_pos_;
         
+        //calc_path_dwa
+        double cost_limit_ =1000000;
+        double cost_min_;
+        double v_min_;
+        double w_min_;
+        double to_goal_min_,speed_min_,ob_min_;
+        double goal_cost_,speed_cost_,ob_cost_,cost_final_;
+
         //initialized
         double max_vel_ ;//[m/s]
         double min_vel_ ;

@@ -171,10 +171,13 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<Node> ob
       }else{}
     }
   }
+  /*
+  //avoid stop spin
   if (v_min_==0){
     v_min_=0.001;
     w_min_=-0.5; 
   }
+  */
   std::cout<<"speed_gain_"<<speed_gain_<<std::endl;
   std::cout<<"max_vel_"<<max_vel_<<std::endl;
   std::cout<<"v_min"<<v_min_<<std::endl;
@@ -210,7 +213,7 @@ double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<Node> o
 
       double r = sqrt(std::pow(dx,2)+std::pow(dy,2));
       if (r<=robot_radius_){
-        return inf;
+        //return inf;
       }else{}
       if(minr>=r){
         minr =r;

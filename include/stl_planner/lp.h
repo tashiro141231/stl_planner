@@ -85,6 +85,7 @@ class LPlanner{
         double vel_out_;
         double omega_out_;
         Point current_pos_;
+        bool collision_;
         
         //calc_path_dwa
         double cost_limit_ =1000000;

@@ -151,16 +151,17 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<Node> ob
 
   std::cout<<"w_max:"<<dw.w_max<<" w_min:"<<dw.w_min<<std::endl;
   double limit = 0.0001;
-  
+  dw.v_min=0;
   for(double v=dw.v_min;v<dw.v_max;v+=v_resolution_){
     for(double w = dw.w_min;w<dw.w_max;w+=w_resolution_){
+      collision_ = 0;
       traj = calc_trajectory(state,v,w);
       goal_cost_ = std::max(goal_gain_*calc_to_goal_cost(traj,goal),limit);
       //speed_cost = speed_gain_*(max_vel_-traj[traj.size()-1].v);
       speed_cost_ = std::max(speed_gain_*(max_vel_-v),limit);
       ob_cost_ = std::max(ob_gain_*calc_obstacle_cost(traj,ob),limit);
       cost_final_ = goal_cost_+speed_cost_+ob_cost_;
-      if (cost_min_ >= cost_final_){
+      if (cost_min_ >= cost_final_&&collision_==0){
         cost_min_ = cost_final_;
         to_goal_min_ = goal_cost_;
         speed_min_ = speed_cost_;
@@ -190,8 +191,6 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<Node> ob
     buff.theta = best_traj[i].yaw;
     path.push_back(buff);
   }
-  vel_out_ = v_min_;
-  omega_out_ = w_min_;
   current_vel_ = v_min_;
   current_omega_ = w_min_;
   current_path_=path;
@@ -212,16 +211,14 @@ double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<Node> o
       double dy = traj[ii].y-ob[i].y;
 
       double r = sqrt(std::pow(dx,2)+std::pow(dy,2));
-      if (r<=robot_radius_){
-        //return inf;
-      }else{}
       if(minr>=r){
         minr =r;
       } else{}
     }
   }
-  if(minr<robot_radius_)
-  minr = 0.0001;
+  if(minr<robot_radius_){
+    collision_ = 1;
+  }else{}
   double cost= 1/minr;
   return cost;
 }

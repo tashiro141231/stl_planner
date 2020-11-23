@@ -51,7 +51,7 @@ void LPlanner::setCurrentPosition(Point point) {
   current_pos_ = point;
   std::cout << "Set CurrentPosition x: " << current_pos_.x << " y: " << current_pos_.y << " theta: " << current_pos_.theta * 180 / M_PI << std::endl;
   if(is_set_goal_) {
-    std::cout << "Start x: " << start_.x << " y: " << start_.y << " theta: " << start_.theta * 180 / M_PI << std::endl;
+    //std::cout << "Start x: " << start_.x << " y: " << start_.y << " theta: " << start_.theta * 180 / M_PI << std::endl;
     std::cout << "Goal x: " << goal_.x << " y: " << goal_.y << " theta: " << goal_.theta * 180 / M_PI << std::endl;
   }
 }
@@ -147,21 +147,25 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<Node> ob
   v_min_ = 0;//current_vel?
   w_min_ = 0;//current_omega?
   std::vector<State> best_traj ={state};
-  std::vector<State> traj ;
-
-  std::cout<<"w_max:"<<dw.w_max<<" w_min:"<<dw.w_min<<std::endl;
+  std::vector<State> traj,traj0;
+  //std::cout<<"w_max:"<<dw.w_max<<" w_min:"<<dw.w_min<<std::endl;
   double limit = 0.0001;
   dw.v_min=0;
+  int count = 0;
   for(double v=dw.v_min;v<dw.v_max;v+=v_resolution_){
     for(double w = dw.w_min;w<dw.w_max;w+=w_resolution_){
       collision_ = 0;
       traj = calc_trajectory(state,v,w);
-      goal_cost_ = std::max(goal_gain_*calc_to_goal_cost(traj,goal),limit);
-      //speed_cost = speed_gain_*(max_vel_-traj[traj.size()-1].v);
-      speed_cost_ = std::max(speed_gain_*(max_vel_-v),limit);
-      ob_cost_ = std::max(ob_gain_*calc_obstacle_cost(traj,ob),limit);
+      goal_cost_ = goal_gain_*calc_to_goal_cost(traj,goal);
+      speed_cost_ = speed_gain_*(max_vel_-v);
+      ob_cost_ = ob_gain_*calc_obstacle_cost(traj,ob);
+      //ob_cost_ = 0;
+      std::vector<double> n = cost_normalize(goal_cost_,speed_cost_,ob_cost_);
+      //goal_cost_=n[0]; speed_cost_=n[1]; ob_cost_=n[2];
       cost_final_ = goal_cost_+speed_cost_+ob_cost_;
-      if (cost_min_ >= cost_final_&&collision_==0){
+      //collision_ = 0;
+      if (cost_min_ >= cost_final_ && collision_==0){
+        count++;
         cost_min_ = cost_final_;
         to_goal_min_ = goal_cost_;
         speed_min_ = speed_cost_;
@@ -173,15 +177,22 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<Node> ob
     }
   }
   /*
-  //avoid stop spin
+  traj0 = calc_trajectory(state,0.1,0);
+  double goal_cost0 = goal_gain_*calc_to_goal_cost(traj0,goal);
+  std::cout<<"goal:"<<to_goal_min_<<std::endl;
+  std::cout<<"goal0:"<<goal_cost0<<std::endl;
+  std::cout<<"x_y_th="<<best_traj[29].x<<best_traj[29].y<<best_traj[29].yaw<<std::endl;
+  std::cout<<"00_x_y_th="<<traj0[29].x<<traj0[29].y<<traj0[29].yaw<<std::endl;
+    std::cout<<"count"<<count<<std::endl;
+  */
+
+  /*avoid stop spin
   if (v_min_==0){
     v_min_=0.001;
     w_min_=-0.5; 
-  }
-  */
-  std::cout<<"speed_gain_"<<speed_gain_<<std::endl;
-  std::cout<<"max_vel_"<<max_vel_<<std::endl;
-  std::cout<<"v_min"<<v_min_<<std::endl;
+  }*/
+  
+  //std::cout<<"v_out"<<v_min_<<"w_out"<<w_min_<<std::endl;
   std::cout<<"goal:"<<to_goal_min_<<" speed:"<<speed_min_<<" ob:"<<ob_min_<<std::endl;
   std::vector<Point> path ={};
   for(int i =0;i<best_traj.size();i++){
@@ -204,6 +215,7 @@ std::vector<Point> LPlanner::getPath(){
 double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<Node> ob){
   int skip_n = 2;
   float inf = std::numeric_limits<float>::infinity();
+  inf = 100000;
   double minr = inf;
   for(int ii=0;ii<traj.size();ii+=skip_n){
     for(int i=0;i<ob.size();i++){
@@ -218,11 +230,15 @@ double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<Node> o
   }
   if(minr<robot_radius_){
     collision_ = 1;
+    return inf;
   }else{}
+  if(minr>=100)
+  return 0;
   double cost= 1/minr;
   return cost;
 }
 
+/*
 double LPlanner::calc_to_goal_cost(std::vector<State> traj,Point goal){
    double goal_magnitude = std::sqrt(std::pow(goal.x,2)+ std::pow(goal.y,2));
    double traj_x = traj[traj.size()-1].x;
@@ -233,6 +249,17 @@ double LPlanner::calc_to_goal_cost(std::vector<State> traj,Point goal){
    double error_angle = std::acos(error);
    double cost = error_angle;
   return cost;
+}*/
+
+
+double LPlanner::calc_to_goal_cost(std::vector<State> traj,Point goal){
+  double goal_magnitude = std::sqrt(std::pow(goal.x,2)+ std::pow(goal.y,2));
+  double traj_x = traj[traj.size()-1].x;
+  double traj_y = traj[traj.size()-1].y;
+  double traj_th = traj[traj.size()-1].yaw;
+  double angle_to_goal = std::atan2(goal.y-traj_y,goal.x-traj_x);
+  double score_angle = std::abs(angle_correct(angle_to_goal-traj_th)); 
+  return score_angle;
 }
 
 void LPlanner::dwa_control(){
@@ -262,4 +289,26 @@ bool LPlanner::goalCheck() {
     }
   }
   return false;
+}
+
+double LPlanner::angle_correct(double theta){
+  if(theta>M_PI){
+    while(theta>M_PI){
+      theta -= 2*M_PI;
+    }
+  }
+  else if(theta<M_PI){
+    while(theta<-M_PI){
+      theta += 2*M_PI;
+    }
+  }else{}
+  return theta;
+}
+
+std::vector<double> LPlanner::cost_normalize(double goal_cost,double speed_cost, double ob_cost){
+  double max = std::max({goal_cost,speed_cost,ob_cost});
+  double min = std::min({goal_cost,speed_cost,ob_cost});
+  double d = max-min;
+  std::vector<double> n = {(goal_cost-min)/d,(speed_cost-min)/d,(ob_cost-min)/d};
+  return n;
 }

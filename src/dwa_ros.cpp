@@ -132,6 +132,7 @@ void DWA_ROS::main_loop() {
       V = dwa.getVelOut();
       W = dwa.getOmgOut();
       PubVelOmgOutput(V, W);
+      //sleep(60);
     }else{
       PubVelOmgOutput(0,0);
       std::cout<<"stop"<<std::endl;

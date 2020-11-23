@@ -53,6 +53,8 @@ class LPlanner{
         void dwa_control();
         bool UpdateVW();
         bool goalCheck();
+        double angle_correct(double theta);
+        std::vector<double> cost_normalize(double goal_cost,double speed_cost, double ob_cost);
 
         //setter
         void setCurrentPosition(Point point);

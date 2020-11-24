@@ -63,6 +63,7 @@ void LPlanner::setMap(int width, int height, double resolution, Point lower_left
   max_y_ = height;
   resolution_ = resolution;
   o_map_ = rawmap_to_point(lower_left, map);
+  o_map_double_ = rawmap_to_point_double(lower_left, map);
 }
 void LPlanner::setCostMap(int width, int height, double reslution, Point lower_left, unsigned char *map) {
   ;
@@ -77,6 +78,22 @@ std::vector<Node> LPlanner::rawmap_to_point(Point lower_left, unsigned char* map
       buff.cost = map[itr];
       buff.x = (int)(lower_left.x) + (int)(itr % width_)*resolution_;
       buff.y = (int)(lower_left.y) + (int)(itr / width_)*resolution_;
+      if(buff.cost>0){
+        buff_map.push_back(buff);
+      }else{}
+    }
+  }
+  return buff_map;
+}
+
+std::vector<dNode> LPlanner::rawmap_to_point_double(Point lower_left, unsigned char* map) {
+  std::vector<dNode> buff_map;
+  dNode buff;
+  for(int itr = 0; itr < width_*height_; itr++) {
+    if(map[itr] != 0xFF && map[itr] != 0x00) {
+      buff.cost = map[itr];
+      buff.x = (lower_left.x) + (itr % width_)*resolution_;
+      buff.y = (lower_left.y) + (itr / width_)*resolution_;
       if(buff.cost>0){
         buff_map.push_back(buff);
       }else{}
@@ -266,6 +283,7 @@ void LPlanner::dwa_control(){
   State state = {current_pos_.x,current_pos_.y,current_pos_.theta,current_vel_,current_omega_};
   DW dw = calc_dynamic_window(state);
   calc_path_dwa(state,dw,goal_,o_map_);
+  //show_ob(o_map_double_);
 }
 
 double LPlanner::getVelOut() {
@@ -311,4 +329,13 @@ std::vector<double> LPlanner::cost_normalize(double goal_cost,double speed_cost,
   double d = max-min;
   std::vector<double> n = {(goal_cost-min)/d,(speed_cost-min)/d,(ob_cost-min)/d};
   return n;
+}
+
+void LPlanner::show_ob(std::vector<dNode> ob){
+  std::cout<<"ob_size = "<<ob.size()<<std::endl;
+  for(int i=0; i<ob.size();i++){
+    double x = ob[i].x;
+    double y = ob[i].y;
+    std::cout<<"x,y="<<x<<","<<y<<std::endl;
+  }
 }

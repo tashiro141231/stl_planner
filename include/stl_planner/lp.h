@@ -29,6 +29,11 @@ typedef struct DW {
     double w_max;
 }DW;
 
+typedef struct dNode{
+    double x;
+    double y;
+    unsigned char cost;
+}dNode;
 
 class LPlanner{
     public:
@@ -44,6 +49,7 @@ class LPlanner{
 
         void SetParams(double v_max, double v_min, double max_acc, double w_max, double w_min, double v_reso, double w_reso, double dtime, double prediction_time);
         std::vector<Node> rawmap_to_point(Point lower_left, unsigned char* map);
+        std::vector<dNode> rawmap_to_point_double(Point lower_left, unsigned char* map);
         State motion(State x, double v, double w);
         DW calc_dynamic_window(State X);
         std::vector<State> calc_trajectory(State x,double v,double w);
@@ -81,6 +87,7 @@ class LPlanner{
         int max_y_;
         std::vector<Point> robot_model_;
         std::vector<Node> o_map_;
+        std::vector<dNode> o_map_double_;
         double current_vel_;
         double current_omega_;
         std::vector<Point> current_path_;
@@ -88,6 +95,7 @@ class LPlanner{
         double omega_out_;
         Point current_pos_;
         bool collision_;
+        void show_ob(std::vector<dNode> ob);
         
         //calc_path_dwa
         double cost_limit_ =1000000;

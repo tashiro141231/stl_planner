@@ -16,10 +16,10 @@ dwa:
  dt: 0.1
  v_resolution: 0.01
  w_resolution: 0.005
- predict_time: 5.0
- goal_gain: 0.3
- speed_gain: 1.0
- ob_gain: 0.1
+ predict_time: 3.0
+ goal_gain: 0.08
+ speed_gain: 0.5
+ ob_gain: 0.03
  robot_radius: 0.2
  
 

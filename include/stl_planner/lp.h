@@ -50,11 +50,12 @@ class LPlanner{
         void SetParams(double v_max, double v_min, double max_acc, double w_max, double w_min, double v_reso, double w_reso, double dtime, double prediction_time);
         std::vector<Node> rawmap_to_point(Point lower_left, unsigned char* map);
         std::vector<dNode> rawmap_to_point_double(Point lower_left, unsigned char* map);
+         std::vector<dNode> rawcostmap_to_point_double(Point lower_left, unsigned char* map);
         State motion(State x, double v, double w);
         DW calc_dynamic_window(State X);
         std::vector<State> calc_trajectory(State x,double v,double w);
-        void calc_path_dwa(State x, DW dw, Point goal,std::vector<Node> ob);
-        double calc_obstacle_cost(std::vector<State> traj, std::vector<Node> ob);
+        void calc_path_dwa(State x, DW dw, Point goal,std::vector<dNode> ob,std::vector<dNode> costmapob);
+        double calc_obstacle_cost(std::vector<State> traj, std::vector<dNode> ob);
         double calc_to_goal_cost(std::vector<State> traj,Point goal);
         void dwa_control();
         bool UpdateVW();
@@ -85,9 +86,16 @@ class LPlanner{
         double resolution_;
         int max_x_;
         int max_y_;
+        int cost_height_;
+        int cost_width_;
+        double cost_resolution_;
+        int cost_max_x_;
+        int cost_max_y_;
         std::vector<Point> robot_model_;
         std::vector<Node> o_map_;
         std::vector<dNode> o_map_double_;
+        std::vector<Node> o_costmap_;
+        std::vector<dNode> o_costmap_double_;
         double current_vel_;
         double current_omega_;
         std::vector<Point> current_path_;
@@ -103,7 +111,7 @@ class LPlanner{
         double v_min_;
         double w_min_;
         double to_goal_min_,speed_min_,ob_min_;
-        double goal_cost_,speed_cost_,ob_cost_,cost_final_;
+        double goal_cost_,speed_cost_,ob_cost_,costmapob_cost_,cost_final_;
 
         //initialized
         double max_vel_ ;//[m/s]
@@ -120,5 +128,6 @@ class LPlanner{
         double speed_gain_ ;
         double ob_gain_ ;
         double robot_radius_ ;
+
 };
 

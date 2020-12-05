@@ -65,8 +65,14 @@ void LPlanner::setMap(int width, int height, double resolution, Point lower_left
   o_map_ = rawmap_to_point(lower_left, map);
   o_map_double_ = rawmap_to_point_double(lower_left, map);
 }
-void LPlanner::setCostMap(int width, int height, double reslution, Point lower_left, unsigned char *map) {
-  ;
+void LPlanner::setCostMap(int width, int height, double resolution, Point lower_left, unsigned char *map) {
+  cost_width_ = width;
+  cost_height_ = height;
+  cost_max_x_ = width;
+  cost_max_y_ = height;
+  cost_resolution_ = resolution;
+  //o_costmap_ = rawmap_to_point(lower_left, map);
+  o_costmap_double_ = rawmap_to_point_double(lower_left, map);
 }
 
 std::vector<Node> LPlanner::rawmap_to_point(Point lower_left, unsigned char* map) {
@@ -94,6 +100,22 @@ std::vector<dNode> LPlanner::rawmap_to_point_double(Point lower_left, unsigned c
       buff.cost = map[itr];
       buff.x = (lower_left.x) + (itr % width_)*resolution_;
       buff.y = (lower_left.y) + (itr / width_)*resolution_;
+      if(buff.cost>0){
+        buff_map.push_back(buff);
+      }else{}
+    }
+  }
+  return buff_map;
+}
+
+std::vector<dNode> LPlanner::rawcostmap_to_point_double(Point lower_left, unsigned char* map) {
+  std::vector<dNode> buff_map;
+  dNode buff;
+  for(int itr = 0; itr < cost_width_*cost_height_; itr++) {
+    if(map[itr] != 0xFF && map[itr] != 0x00) {
+      buff.cost = map[itr];
+      buff.x = (lower_left.x) + (itr % cost_width_)*cost_resolution_;
+      buff.y = (lower_left.y) + (itr / cost_width_)*cost_resolution_;
       if(buff.cost>0){
         buff_map.push_back(buff);
       }else{}
@@ -158,7 +180,7 @@ std::vector<State> LPlanner::calc_trajectory(State x,double v,double w){
   return traj;
 }
 
-void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<Node> ob){
+void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<dNode> ob,std::vector<dNode> costmapob){
   State xinit ={};
   cost_min_ = cost_limit_;
   v_min_ = 0;//current_vel?
@@ -176,6 +198,8 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<Node> ob
       goal_cost_ = goal_gain_*calc_to_goal_cost(traj,goal);
       speed_cost_ = speed_gain_*(max_vel_-v);
       ob_cost_ = ob_gain_*calc_obstacle_cost(traj,ob);
+      costmapob_cost_ = ob_gain_*calc_obstacle_cost(traj,costmapob);
+      ob_cost_ = std::max(ob_cost_,costmapob_cost_);
       //ob_cost_ = 0;
       std::vector<double> n = cost_normalize(goal_cost_,speed_cost_,ob_cost_);
       //goal_cost_=n[0]; speed_cost_=n[1]; ob_cost_=n[2];
@@ -203,11 +227,11 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<Node> ob
     std::cout<<"count"<<count<<std::endl;
   */
 
-  /*avoid stop spin
+  //avoid stop spin
   if (v_min_==0){
     v_min_=0.001;
     w_min_=-0.5; 
-  }*/
+  }
   
   //std::cout<<"v_out"<<v_min_<<"w_out"<<w_min_<<std::endl;
   std::cout<<"goal:"<<to_goal_min_<<" speed:"<<speed_min_<<" ob:"<<ob_min_<<std::endl;
@@ -229,7 +253,7 @@ std::vector<Point> LPlanner::getPath(){
 }
 
 
-double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<Node> ob){
+double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<dNode> ob){
   int skip_n = 2;
   float inf = std::numeric_limits<float>::infinity();
   inf = 100000;
@@ -282,8 +306,9 @@ double LPlanner::calc_to_goal_cost(std::vector<State> traj,Point goal){
 void LPlanner::dwa_control(){
   State state = {current_pos_.x,current_pos_.y,current_pos_.theta,current_vel_,current_omega_};
   DW dw = calc_dynamic_window(state);
-  calc_path_dwa(state,dw,goal_,o_map_);
+  calc_path_dwa(state,dw,goal_,o_map_double_,o_costmap_double_);
   //show_ob(o_map_double_);
+  show_ob(o_costmap_double_);
 }
 
 double LPlanner::getVelOut() {
@@ -333,9 +358,9 @@ std::vector<double> LPlanner::cost_normalize(double goal_cost,double speed_cost,
 
 void LPlanner::show_ob(std::vector<dNode> ob){
   std::cout<<"ob_size = "<<ob.size()<<std::endl;
-  for(int i=0; i<ob.size();i++){
-    double x = ob[i].x;
-    double y = ob[i].y;
-    std::cout<<"x,y="<<x<<","<<y<<std::endl;
-  }
+    for(int i=0; i<ob.size();i++){
+      double x = ob[i].x;
+      double y = ob[i].y;
+      std::cout<<"x,y="<<x<<","<<y<<std::endl;
+    }   
 }

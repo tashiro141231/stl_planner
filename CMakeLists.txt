@@ -17,6 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
   tf2
   tf2_geometry_msgs
   tf2_ros
+  costmap_2d
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -172,6 +174,10 @@ add_executable(astar_ros
   src/gp.cpp
 )
 
+add_executable(costmap_test
+  src/costmap_test.cpp
+)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -196,6 +202,10 @@ target_link_libraries(dwa_ros
 )
 
 target_link_libraries(astar_ros
+   ${catkin_LIBRARIES}
+)
+
+target_link_libraries(costmap_test
    ${catkin_LIBRARIES}
 )
 

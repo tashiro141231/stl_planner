@@ -45,7 +45,8 @@ void PlannerBaseROS::Initialize() {
 
     //Subscriber
     map_sub_ = nh.subscribe<nav_msgs::OccupancyGrid>("map", 1, &PlannerBaseROS::MapLoadCallback, this);
-    costmap_sub_ =nh.subscribe<nav_msgs::OccupancyGrid>("move_base/local_cost_map/costmap", 1, &PlannerBaseROS::CostmapLoadCallback, this);
+    //costmap_sub_ =nh.subscribe<nav_msgs::OccupancyGrid>("move_base/local_cost_map/costmap", 1, &PlannerBaseROS::CostmapLoadCallback, this);
+    costmap_sub_ =nh.subscribe<nav_msgs::OccupancyGrid>("costmap_test/local_cost_map/costmap", 1, &PlannerBaseROS::CostmapLoadCallback, this);
     goal_sub_ = nh.subscribe<geometry_msgs::PoseStamped>(goal_topic_, 1, &PlannerBaseROS::WaypointCallback, this);
   }
 }

@@ -196,6 +196,9 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<dNode> o
       collision_ = 0;
       traj = calc_trajectory(state,v,w);
       goal_cost_ = goal_gain_*calc_to_goal_cost(traj,goal);
+      if(current_vel_ <= min_vel_+v_resolution_){
+        goal_cost_ = 0;
+      }
       speed_cost_ = speed_gain_*(max_vel_-v);
       ob_cost_ = ob_gain_*calc_obstacle_cost(traj,ob);
       costmapob_cost_ = ob_gain_*calc_obstacle_cost(traj,costmapob);
@@ -228,10 +231,12 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<dNode> o
   */
 
   //avoid stop spin
+  /*
   if (v_min_==0){
     v_min_=0.001;
     w_min_=-0.5; 
   }
+  */
   
   //std::cout<<"v_out"<<v_min_<<"w_out"<<w_min_<<std::endl;
   std::cout<<"goal:"<<to_goal_min_<<" speed:"<<speed_min_<<" ob:"<<ob_min_<<std::endl;

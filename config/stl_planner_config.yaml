@@ -19,8 +19,8 @@ dwa:
  predict_time: 3.0
  goal_gain: 0.08
  speed_gain: 0.5
- ob_gain: 0.03
- robot_radius: 0.2
+ ob_gain: 0.05
+ robot_radius: 0.23
  
 
 line_planner:

@@ -4,10 +4,14 @@ Simulator setup and turtlebot's tf start publishing(GUI off)
 $ roslaunch stl_planner costmap_test.launch
 start localization (amcl) and move_base won't start.
 move_baseが動かないため代わりにcost_mapを発行するノードも動かしてる（はずだが？）
+->amclとかもきどうしてる
+
+$rosrun stl_planner costmap_test
+->costmap発行デバッグだけするとき用
+
 
 ここで一回Rvizで初期位置推定を修正（もしくはteleopで少し動かして自己位置を安定させる）
 
-$ roslaunch stl_planner dwa_planner.launch
 Then you can debag your planner with v, omega.
 
 Rviz上でgoalを追加して動かす

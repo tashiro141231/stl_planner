@@ -2,7 +2,7 @@
  * @file lp.cpp
  * @brief Local Planer for STELLA.
  * @author Kotaro HIHARA
- * @date 2020.04.28
+ * @date 2021.03.8
 */
 #include "stl_planner/lp.h"
 #include <algorithm>

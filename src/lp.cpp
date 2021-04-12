@@ -201,7 +201,8 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<dNode> o
       }
       speed_cost_ = speed_gain_*(max_vel_-v);
       ob_cost_ = ob_gain_*calc_obstacle_cost(traj,ob);
-      costmapob_cost_ = ob_gain_*calc_obstacle_cost(traj,costmapob);
+      //costmapob_cost_ = ob_gain_*calc_obstacle_cost(traj,costmapob);
+      costmapob_cost_=0;
       ob_cost_ = std::max(ob_cost_,costmapob_cost_);
       //ob_cost_ = 0;
       std::vector<double> n = cost_normalize(goal_cost_,speed_cost_,ob_cost_);

@@ -1,8 +1,8 @@
 local_costmap:
   plugins: 
     - {name: obstacle_layer, type: 'costmap_2d::ObstacleLayer'}
-  global_frame: odom
-  robot_base_frame: base_footprint
+  global_frame: map
+  robot_base_frame: base_link
 
   update_frequency: 10.0
   publish_frequency: 10.0
@@ -17,7 +17,7 @@ local_costmap:
   obstacle_layer:
    observation_sources: laser_scan_sensor
    laser_scan_sensor: 
-     sensor_frame: base_scan
+     sensor_frame: /base_scan
      topic: /scan
      data_type: sensor_msgs/LaserScan
      marking: true

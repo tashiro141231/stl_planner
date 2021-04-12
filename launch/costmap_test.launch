@@ -16,6 +16,7 @@
   <!-- AMCL -->
   <include file="$(find turtlebot3_navigation)/launch/amcl.launch"/>
 
+
   <!-- costmap_test -->
   <node pkg="stl_planner" type="costmap_test" name="costmap_test" output="screen">
     <rosparam command="load" file="$(find stl_planner)/config/local_costmap_params.yaml" />

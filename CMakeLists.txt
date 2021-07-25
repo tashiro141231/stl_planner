@@ -148,6 +148,7 @@ add_executable(state_machine
   src/state_machine.cpp
   src/gp.cpp
   src/lp.cpp
+  src/
 )
 
 add_executable(line_planner_ros
@@ -164,6 +165,14 @@ add_executable(dwa_ros
   src/dwa_ros.cpp
   src/rosmsg_raw_conv.cpp
   src/lp.cpp
+)
+
+add_executable(pp_ros
+  src/pp_ros_node.cpp
+  src/planner_base_ros.cpp
+  src/pp_ros.cpp
+  src/rosmsg_raw_conv.cpp
+  src/pure_pursuit.cpp
 )
 
 add_executable(astar_ros
@@ -198,6 +207,10 @@ target_link_libraries(line_planner_ros
 )
 
 target_link_libraries(dwa_ros
+   ${catkin_LIBRARIES}
+)
+
+target_link_libraries(pp_ros
    ${catkin_LIBRARIES}
 )
 

@@ -21,6 +21,14 @@ dwa:
  speed_gain: 0.5
  ob_gain: 0.05
  robot_radius: 0.23
+
+pp:
+ max_vel: 0.5
+ min_vel: 0
+ max_acc: 0.2
+ max_w: 0.6981
+ min_w: -0.6981
+
  
 
 line_planner:

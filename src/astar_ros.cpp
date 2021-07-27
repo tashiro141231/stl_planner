@@ -25,6 +25,7 @@ AStarROS::AStarROS(tf2_ros::Buffer& tf) : PlannerBaseROS(tf)
  {
   Initialize();
   ros::NodeHandle nh;
+  setLoopRate(10);
   pub_gp_ = nh.advertise<nav_msgs::Path>("global_plan", 1000);
 }
 
@@ -49,8 +50,11 @@ void AStarROS::setGoal(geometry_msgs::PoseStamped msg) {
   goal.x = x;
   goal.y = y;
   goal.theta = theta;
+  std::cout << "1" << std::endl;
   gp.setStartGoal(getCurrentPos(), goal);
+  std::cout << "2" << std::endl;
   nav_msgs::Path p = path_to_rospath(gp.calc_path_astar(), getGlobalFrame()); //calc path to goal
+  std::cout << "3" << std::endl;
 
   PubGlobalPath(p);
   ROS_INFO("outing");
@@ -65,10 +69,11 @@ void AStarROS::PubGlobalPath(nav_msgs::Path path) {
 }
 
 void AStarROS::main_loop() {
-  ros::Rate loop_rate(getLoopRate());
+  ros::Rate loop_rate((int)getLoopRate());
   while(ros::ok()) {
     UpdateCurrentPosition();
     ros::spinOnce();
+    
     // gp.calc_path();
     loop_rate.sleep();
   }

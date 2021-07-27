@@ -113,7 +113,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES stl_planner
-  CATKIN_DEPENDS dynamic_reconfigure nav_msgs roscpp rospy sensor_msgs std_msgs tf2 tf2_geometry_msgs tf2_ros
+  CATKIN_DEPENDS dynamic_reconfigure nav_msgs roscpp rospy sensor_msgs std_msgs tf2 tf2_geometry_msgs tf2_ros costmap_2d
 #  DEPENDS system_lib
 )
 
@@ -186,6 +186,9 @@ add_executable(astar_ros
 add_executable(costmap_test
   src/costmap_test.cpp
 )
+#add_executable(costmap
+#  src/costmap.cpp
+#)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -221,6 +224,9 @@ target_link_libraries(astar_ros
 target_link_libraries(costmap_test
    ${catkin_LIBRARIES}
 )
+#target_link_libraries(costmap
+#   ${catkin_LIBRARIES}
+#)
 
 #############
 ## Install ##

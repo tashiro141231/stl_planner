@@ -11,10 +11,12 @@ vel_stop_thr_(0),
 omega_stop_thr_(0),
 v_resolution_(0.01),
 w_resolution_(1*M_PI/180),
+loop_rate_(10),
 dt_(0.1),
 max_acc_(0.2),
 predict_time_(3.0),
-goal_topic_("move_base_simple/goal")
+goal_topic_("move_base_simple/goal"),
+odom_topic_("odom")
 {
   Initialize();
 }
@@ -30,6 +32,7 @@ void PlannerBaseROS::Initialize() {
     private_nh.getParam("robot_width", robot_width_);
     private_nh.getParam("robot_length", robot_length_);
     private_nh.getParam("goal_topic_name", goal_topic_);
+    private_nh.getParam("odom_topic_name", odom_topic_);
     private_nh.getParam("line_planner/loop_rate", loop_rate_);
 
     private_nh.getParam("dwa/max_vel", max_vel_);
@@ -48,6 +51,7 @@ void PlannerBaseROS::Initialize() {
     //costmap_sub_ =nh.subscribe<nav_msgs::OccupancyGrid>("move_base/local_cost_map/costmap", 1, &PlannerBaseROS::CostmapLoadCallback, this);
     costmap_sub_ =nh.subscribe<nav_msgs::OccupancyGrid>("costmap_test/local_cost_map/costmap", 1, &PlannerBaseROS::CostmapLoadCallback, this);
     goal_sub_ = nh.subscribe<geometry_msgs::PoseStamped>(goal_topic_, 1, &PlannerBaseROS::WaypointCallback, this);
+    odom_sub_ = nh.subscribe<>(odom_topic_, 1, &PlannerBaseROS::OdometryCallback, this);
   }
 }
 
@@ -63,7 +67,7 @@ void PlannerBaseROS::UpdateCurrentPosition() {
     current_pos_.x = x;
     current_pos_.y = y;
     current_pos_.theta = yaw;
-    std::cout << "PlannerBase: yaw pitch roll :" << yaw << " " << pitch << " " << roll << std::endl;
+    //std::cout << "PlannerBase: yaw pitch roll :" << yaw << " " << pitch << " " << roll << std::endl;
     setCurrentPositionToPlanner(current_pos_);
     // sm_.setCurrentPosition(x, y, yaw);
   } catch (tf2::TransformException &ex) {
@@ -99,7 +103,14 @@ void PlannerBaseROS::CostmapLoadCallback(const nav_msgs::OccupancyGrid msg) {
 }
 
 void PlannerBaseROS::WaypointCallback(geometry_msgs::PoseStamped msg) {
+  ROS_INFO("WEEEEEEEEEEEEEEEEEEEY");
   setGoal(msg); 
+}
+
+void PlannerBaseROS::OdometryCallback(nav_msgs::Odometry msg) {
+  odom_omega_ = msg.twist.twist.angular.z;
+  odom_vel_ = msg.twist.twist.linear.x;
+  setOdomVelOmega(odom_vel_, odom_omega_);
 }
 /*------------------ end of Callback function ------------------*/
 

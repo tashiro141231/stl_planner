@@ -64,6 +64,8 @@ class GPlanner{
         int calc_ind(int x, int y);
         void calc_map(std::vector<double> map_x, std::vector<double> map_y, std::vector<int> cost);
         void map_init();
+        std::vector<unsigned char> costmap_calc(Point lower_left, unsigned char* map);
+        std::vector<unsigned char> costmap_calc_vis(Point lower_left, unsigned char* map);
         Point calc_position(int index,int min);  
         void calc_path();
         std::vector<Point> calc_path_astar();
@@ -97,7 +99,9 @@ class GPlanner{
         double resolution_;
         int max_x_;
         int max_y_;
+        Point lower_left_;
         std::vector<Point> robot_model_;
         std::vector<Node> o_map_;
+        std::vector<unsigned char> total_cost_;
 };
 

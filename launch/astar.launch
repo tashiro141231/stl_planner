@@ -1,0 +1,10 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="map_file" default="$(find stl_planner)/maps/map.yaml"/>
+
+  <!-- Astar -->
+  <node pkg="stl_planner" name="astar_ros" type="astar_ros" output="screen">
+    <rosparam command="load" file="$(find stl_planner)/config/stl_planner_config.yaml"/>
+  </node>
+
+</launch>

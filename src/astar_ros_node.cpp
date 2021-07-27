@@ -22,7 +22,6 @@ int main(int argc, char **argv)
   ros::NodeHandle n;
   tf2_ros::Buffer buffer(ros::Duration(10));
   tf2_ros::TransformListener tf(buffer);
-
   AStarROS astar_node(buffer);
 
   astar_node.main_loop();

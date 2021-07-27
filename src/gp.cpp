@@ -37,7 +37,7 @@ void GPlanner::Init_robotmodel() {
 }
 
 /** @fn 
- * @brief 
+ * @brief
  * @param
  * @detail
 */
@@ -152,16 +152,17 @@ std::vector<Point> GPlanner::calc_path_astar() {
       c_node.first.x = c_node.first.x + robot_model_[itr].x;    //calcurating grid x
       c_node.first.y = c_node.first.y + robot_model_[itr].y;    //calcurating grid y
       c_node.first.theta = c_node.first.theta + robot_model_[itr].theta + calc_heuristic(c_node.first, goal_) - calc_heuristic(buff.first, goal_);   //heuristic cost + moving cost
-      //std:: cout << "cost: " << c_node.first.theta << std::endl;
+      //std::cout << "cost: " << c_node.first.theta << std::endl;
       if(isObstacle(c_node.first)) {         //
         continue;
       }
+      //std:: cout << "Out" << std::endl;
       checkLists(c_node, open, close);
     }
   }
   std::vector<Point> path = lookup_closednode(close, open);
   std::cout << "path size: " << path.size() << std::endl;
-  //visualize_result(path, close);
+  visualize_result(path, close);
 
   return path;
 }
@@ -315,7 +316,7 @@ int GPlanner::calc_ind(int x,int y){
  * @brief 
  * @param
  * @detail
-*/
+Star_ROS has been init.*/
 bool GPlanner::isSamePoint(Point start, Point goal) {
   if(start.x == goal.x && start.y == goal.y) return true;
   else  return false;
@@ -327,10 +328,22 @@ bool GPlanner::isSamePoint(Point start, Point goal) {
  * @detail
 */
 bool GPlanner::isObstacle(Point p) {
-  for(int itr = 0; itr < o_map_.size(); itr++) {
-    if(p.x == o_map_[itr].x && p.y == o_map_[itr].y) {
-      return true;
-    }
+  //for(int itr = 0; itr < o_map_.size(); itr++) {
+  //  if(p.x == o_map_[itr].x && p.y == o_map_[itr].y) {
+  //    return true;
+  //  }
+  //}
+  //int index = (lower_left_.x + p.x) + (lower_left_.y + p.y) * width_;
+  Point lower_left = ConvGridPoint(lower_left_);
+  int index = (int)((-lower_left.x + p.x) + (-lower_left.y + p.y) * width_);
+  std::cout << width_ << " " << height_ << std::endl;
+  if(total_cost_[index] != 0x00 && total_cost_[index] != 0xFF) {
+    std::cout << "x: " << p.x << " y: " << p.y << " index: " << index << std::endl;
+    std::cout << "grid_x: " << p.x/resolution_ << " y: " << p.y/resolution_ << std::endl;
+    std::cout << "start_ x: " << start_.x << " y: " << start_.y << std::endl;
+    std::cout << "goal_ x: " << goal_.x << " y: " << goal_.y << std::endl;
+    std::cout << "lower?left_ x: " << lower_left_.x << " y: " << lower_left_.y << std::endl;
+    return true;
   }
   return false;
 }
@@ -356,8 +369,11 @@ std::vector<Node> GPlanner::rawmap_to_node(Point lower_left, unsigned char* map)
   lower_left = ConvGridPoint(lower_left);
 
   for(int itr = 0; itr < width_*height_; itr++) {
-    if(map[itr] != 0xFF && map[itr] != 0x00) {
-      buff.cost = map[itr];
+    if(total_cost_[itr] != 0xFF && total_cost_[itr] != 0x00) {
+    //if(map[itr] != 0xFF && map[itr] != 0x00) {
+      buff.cost = total_cost_[itr];
+      //buff.x = (int)(lower_left.x) + (int)(itr % width_);
+      //buff.y = (int)(lower_left.y) + (int)(itr / width_);A
       buff.x = (int)(lower_left.x) + (int)(itr % width_);
       buff.y = (int)(lower_left.y) + (int)(itr / width_);
       g_map.push_back(buff);
@@ -365,6 +381,7 @@ std::vector<Node> GPlanner::rawmap_to_node(Point lower_left, unsigned char* map)
   }
   return g_map;
 }
+
 
 
 /** @fn 
@@ -381,8 +398,9 @@ std::vector<Node> GPlanner::rawmap_to_node_vis(Point lower_left, unsigned char* 
   fprintf(gid, "plot '-'\n");
 
   for(int itr = 0; itr < width_*height_; itr++) {
-    if(map[itr] != 0xFF && map[itr] != 0x00) {
-      buff.cost = map[itr];
+    //if(map[itr] != 0xFF && map[itr] != 0x00) {
+    if(total_cost_[itr] != 0xFF && total_cost_[itr] != 0x00) {
+      buff.cost = total_cost_[itr];
       buff.x = (int)(lower_left.x) + (int)(itr % width_);
       buff.y = (int)(lower_left.y) + (int)(itr / width_);
       g_map.push_back(buff);
@@ -397,12 +415,94 @@ std::vector<Node> GPlanner::rawmap_to_node_vis(Point lower_left, unsigned char* 
   return g_map;
 }
 
+/** @fn 
+ * @brief Set the cost map around origin map.
+ * @param
+ * @detail
+*/
+std::vector<unsigned char> GPlanner::costmap_calc(Point lower_left, unsigned char* map) {
+  std::vector<unsigned char> cost_map;
+  cost_map.resize(width_ * height_, 0);
+  std::cout << "resize : " << cost_map.size() << std::endl;
+  int cost_mergin = 0.15;  //m
+
+  for(int i = 0; i < width_*height_; i++) {
+    int x = (int)(lower_left.x) + (int)(i % width_);
+    int y = (int)(lower_left.y) + (int)(i / width_);
+
+    if(map[i] != 0xFF && map[i] != 0x00) {
+      cost_map[i] = map[i];
+      std::cout << "Set cost around: " << x << " , " << y << std::endl;
+      //Add the cost around a node.
+      for(int xi = (int)(-cost_mergin/resolution_); xi < (int)(cost_mergin/resolution_); xi++) {
+        for(int yi = (int)(-cost_mergin/resolution_); yi < (int)(cost_mergin/resolution_); yi++) {
+          int cost_x = x + xi;
+          int cost_y = y + yi * width_;
+          if(cost_x >= 0 && cost_x < width_) {
+            if(cost_y >= 0 && cost_y < height_) {
+              cost_map[cost_x + cost_y] = 0x64;
+            }
+          }
+        }
+      }
+    }
+  }
+  return cost_map;
+}
+
+
+/** @fn 
+ * @brief Set the cost map around origin map.
+ * @param
+ * @detail
+*/
+std::vector<unsigned char> GPlanner::costmap_calc_vis(Point lower_left, unsigned char* map) {
+  std::vector<unsigned char> cost_map;
+  cost_map.resize(width_ * height_, 0);
+  std::cout << "resize : " << cost_map.size() << std::endl;
+  int cost_mergin = 0.5;  //m
+
+  FILE *gid;
+  if((gid = popen("gnuplot", "w")) == NULL) std::cout << "gnuplot open error" << std::endl;
+  fprintf(gid, "plot '-'\n");
+
+  for(int i = 0; i < width_*height_; i++) {
+    int x = (int)(lower_left.x) + (int)(i % width_);
+    int y = (int)(lower_left.y) + (int)(i / width_);
+
+    if(map[i] != 0xFF && map[i] != 0x00) {
+      cost_map[i] = map[i];
+      //Add the cost around a node.
+      for(int xi = (int)(-cost_mergin/resolution_); xi < (int)(cost_mergin/resolution_); xi++) {
+        for(int yi = (int)(-cost_mergin/resolution_); yi < (int)(cost_mergin/resolution_); yi++) {
+          int cost_x = x + xi;
+          int cost_y = y + yi;
+          if(cost_x > 0 && cost_x < width_) {
+            if(cost_y > 0 && cost_y < height_) {
+              cost_map[cost_x + (int)(cost_y * width_)] = 0x64;
+              fprintf(gid, "%lf, %lf\n", (float)cost_x, (float)cost_y);
+            }
+          }
+        }
+      }
+    }
+  }
+  fprintf(gid, "e\n");
+  fflush(gid);
+  getchar();
+  fprintf(gid, "pause -l");
+  pclose(gid);
+
+  return cost_map;
+}
+
 Point GPlanner::ConvGridPoint(Point point) {
   Point grid_point;
   grid_point.x = (int)(point.x / resolution_);
   grid_point.y = (int)(point.y / resolution_);
   return grid_point;
 }
+
 
 /** @fn 
  * @brief 
@@ -443,8 +543,12 @@ void GPlanner::setMap(int width, int height, double resolution, Point lower_left
   max_x_ = width;
   max_y_ = height;
   resolution_ = resolution;
+  lower_left_ = lower_left;
 
+  total_cost_ = costmap_calc(lower_left, map);
   o_map_ = rawmap_to_node(lower_left, map);
+  //total_cost_ = costmap_calc_vis(lower_left, map);
+  std::cout << "Map received." << std::endl;
   //o_map_ = rawmap_to_nodei_vis(lower_left, map);
 }
 

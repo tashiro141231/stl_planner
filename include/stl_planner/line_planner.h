@@ -26,12 +26,14 @@ class LinePlanner {
         bool goalCheck();
         double ConvAngleRange(double value);
         void InitTargetLine();
+        void InitTargetLineGoal();
         Point ConvGridToPoint(Point p);
         Point ConvPointToGrid(Point p);
         std::vector<Node> RawMapToNode(Point lower_left, unsigned char *map);
         
         //setter
         void setCurrentPosition(Point point);
+        void setCurrentVelOmega(double vel, double omega);
         void setStartPoint(Point start);
         void setGoalPoint(Point goal);
         void setStartGoal(Point start, Point goal);
@@ -56,13 +58,15 @@ class LinePlanner {
         unsigned char* dynamic_map_;
 
         double max_vel_, min_vel_;
+        double max_omega_, min_omega_;
         double current_vel_, prev_vel_;
         double current_omega_, prev_omega_;
+        double target_vel_, target_omega_;
         double acc_;
         double dt_;
         // For Feedback
         double Ke_, Kp_, Ko_;
-        double eta_, phi_;
+        double eta_, phi_, omega_diff_;
         double max_eta_;
         //Target line
         double target_line_angle_;

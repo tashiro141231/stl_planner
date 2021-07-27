@@ -37,9 +37,9 @@ void LinePlannerROS::PlannerInitialize() {
     pub_line_vw_ = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1); 
     pub_goal_ = nh.advertise<geometry_msgs::PoseStamped>("line_planner/goal", 1);
 
-    double max_vel, min_vel,max_w,acc, dt;
+    double max_vel, min_vel,max_w,acc, rate;
     double Ko, Kp, Ke, max_eta;
-    private_nh.getParam("line_planner/loop_rate", dt);
+    private_nh.getParam("line_planner/loop_rate", rate);
     private_nh.getParam("line_planner/max_vel", max_vel);
     private_nh.getParam("line_planner/min_vel", min_vel);
     private_nh.getParam("line_planner/vel_acc", acc);
@@ -49,13 +49,13 @@ void LinePlannerROS::PlannerInitialize() {
     private_nh.getParam("line_planner/gain_eta", Ke);
     private_nh.getParam("line_planner/max_eta", max_eta);
 
-    setLoopRate(1/dt);
+    setLoopRate(rate);
     setMaxVel(max_vel);
     setMinVel(min_vel);
     setMaxOmega(max_w);
     setMinOmega(-max_w);
     setMaxAcc(acc);
-    lp.Initialize(max_vel, min_vel, acc, max_w, max_eta, Ko, Kp, Ke, dt);
+    lp.Initialize(max_vel, min_vel, acc, max_w, max_eta, Ko, Kp, Ke, rate);
 
     planner_initialized_ = true;
   }
@@ -81,12 +81,17 @@ void LinePlannerROS::setGoal(geometry_msgs::PoseStamped msg) {
   goal.theta = theta;
   lp.setStartGoal(getCurrentPos(), goal);
   pub_goal_.publish(target);
+  ROS_INFO("Received goal.");
   //nav_msgs::Path p = path_to_rospath(gp.calc_path_astar(), getGlobalFrame()); //calc path to goal
 
 }
 
 void LinePlannerROS::setCurrentPositionToPlanner(Point point) {
   lp.setCurrentPosition(point);
+}
+
+void LinePlannerROS::setOdomVelOmega(double vel, double omega) {
+  lp.setCurrentVelOmega(vel, omega);
 }
 
 void LinePlannerROS::PubGlobalPath(nav_msgs::Path path) {
@@ -102,13 +107,16 @@ void LinePlannerROS::PubVelOmgOutput(double v, double w) {
 
 
 void LinePlannerROS::main_loop() {
-  ros::Rate loop_rate(20);
+  double rate = getLoopRate(); 
+  ros::Rate loop_rate(rate);
   double V=0;
   double W=0;
+
   while(ros::ok()) {
     UpdateCurrentPosition();
     if(lp.goalCheck()) {
       PubVelOmgOutput(0,0);
+      lp.setCurrentVelOmega(0, 0);
     }
     ros::spinOnce();
     if(lp.UpdateVW()) {
@@ -118,4 +126,5 @@ void LinePlannerROS::main_loop() {
     }
     loop_rate.sleep();
   }
+  PubVelOmgOutput(0, 0);
 }

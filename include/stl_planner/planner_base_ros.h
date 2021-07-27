@@ -11,6 +11,7 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include "nav_msgs/MapMetaData.h"
 #include "nav_msgs/Path.h"
+#include "nav_msgs/Odometry.h"
 
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/TransformStamped.h"
@@ -37,14 +38,16 @@ class PlannerBaseROS {
     void MapLoadCallback(const nav_msgs::OccupancyGrid msg);
     void CostmapLoadCallback(const nav_msgs::OccupancyGrid msg);
     void WaypointCallback(geometry_msgs::PoseStamped msg); 
+    void OdometryCallback(nav_msgs::Odometry msg);
 
     // Override below function
     virtual void setMap(int width, int height, double resolution, Point lower_left, unsigned char* map) {};
     virtual void setCostMap(int width, int height, double resolution, Point lower_left, unsigned char* map) {};
     virtual void setGoal(geometry_msgs::PoseStamped msg) {};
+    virtual void setOdomVelOmega(double vel, double omega) {};
 
     //getter
-    int getLoopRate() { return loop_rate_; }
+    double getLoopRate() { return loop_rate_; }
     int getMapWidth() { return map_width_; }
     int getMapHeight() { return map_height_; }
     int getCostMapWidth() { return cost_width_; }
@@ -67,6 +70,8 @@ class PlannerBaseROS {
     unsigned char* getCostMapRaw() { return costmap_; }
     double getPredictTime() { return predict_time_; }
     Point getCurrentPos() { return current_pos_; }
+    double getOdomVel() { return odom_vel_; }
+    double getOdomOmega() { return odom_omega_; }
     bool isRobotMoving() { return is_robot_moving_; }
 
     std::string getGlobalFrame() { return global_frame_; }
@@ -94,13 +99,15 @@ class PlannerBaseROS {
     bool initialized_;
     bool is_robot_moving_;
     Point current_pos_;
-    int loop_rate_;
+    double loop_rate_;
     std::string goal_topic_;
+    std::string odom_topic_;
    
     //ROS subscriber
     ros::Subscriber map_sub_;
     ros::Subscriber costmap_sub_;
     ros::Subscriber goal_sub_;
+    ros::Subscriber odom_sub_;
 
     //Robot control params
     double max_vel_, max_w_;
@@ -114,6 +121,8 @@ class PlannerBaseROS {
     //robot param
     double robot_width_;
     double robot_length_;
+    double odom_vel_;
+    double odom_omega_;
 
     //map param
     std::string global_frame_;

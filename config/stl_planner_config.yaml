@@ -1,6 +1,7 @@
 global_frame: "map"
 base_frame: "base_link"
 goal_topic_name: "move_base_simple/goal"
+odom_topic_name: "odom"
 loop_rate: 20
 vel_stop_theshhold: 0
 omega_stop_theshhold: 0
@@ -22,13 +23,14 @@ dwa:
  max_acc: 0.2
 
 line_planner:
- loop_rate: 20
- max_vel: 0.5
+ loop_rate: 100
+ max_vel: 0.3
+ max_vel_in_curve: 0.15
  min_vel: 0
- max_w: 0.6981
- min_w: -0.6981
- vel_acc: 0.2
- gain_omega: 0.5
- gain_phi: 0.2
- gain_eta: 0.1
- eta_max: 2.0
+ max_w: 0.785398
+ min_w: -0.785398
+ vel_acc: 0.3
+ gain_omega: 40
+ gain_phi: 40
+ gain_eta: 20
+ max_eta: 1.5

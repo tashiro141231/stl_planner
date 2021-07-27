@@ -15,6 +15,7 @@ class LinePlannerROS : PlannerBaseROS {
     void setCostMap(int width, int height, double resolution, Point lower_left, unsigned char* map);
     void setGoal(geometry_msgs::PoseStamped msg);
     void setCurrentPositionToPlanner(Point point);
+    void setOdomVelOmega(double vel, double omega);
     void PubGlobalPath(nav_msgs::Path path);
     void PubVelOmgOutput(double v, double w);
 

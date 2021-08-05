@@ -9,6 +9,7 @@ class PurePursuit_ROS : PlannerBaseROS {
     PP_Planner pp;
     void main_loop();
     void PlannerInitialize();
+    void GlobalPlanCallback(nav_msgs::Path path);
   
   private:
     void setMap(int width, int height, double resolution, Point lower_left, unsigned char* map);
@@ -18,11 +19,15 @@ class PurePursuit_ROS : PlannerBaseROS {
     void PubLocalPath(nav_msgs::Path path);
     void PubGlobalPath(nav_msgs::Path path);
     void PubVelOmgOutput(double v, double w);
+    
   
     bool planner_initialized_;
 
     ros::Publisher pub_pp_vw_;
     ros::Publisher pub_goal_;
     ros::Publisher pub_pp_path_;
+
+    std::string astar_topic_;
+    ros::Subscriber astar_sub_;
 };
 

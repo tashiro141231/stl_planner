@@ -18,7 +18,7 @@ void PP_Planner::Initialize(double max_vel, double min_vel, double max_acc, doub
   max_acc_ = max_acc;
   max_w_ = max_w;//[rad/s]
   min_w_ = min_w;
-  target_vel_=max_vel_*0.8;
+  target_vel_=max_vel_*0.3;
 }
 
 
@@ -104,8 +104,24 @@ double PP_Planner::angle_correct(double theta){
   return theta;
 }
 
+geometry_msgs::Point PP_Planner::select_target(){
+  geometry_msgs::Point target;
+  for(int i=0;i<global_path.poses.size();i++){
+    geometry_msgs::Point p = global_path.poses[i].pose.position;
+    if( sqrt(pow((p.y-current_pos_.y),2)+pow((p.x-current_pos_.x),2))< look_ahead_distance_){
+      target=p;
+    }
+  }
+  return target;
+}
+
 void PP_Planner::pure_pursuit(){
-  alpha_ = atan((goal_.y-current_pos_.y)/(goal_.x-current_pos_.x));
-  current_omega_=2*target_vel_*sin(alpha_)/look_ahead_distance_;
+  target_point_=select_target();
+  //alpha_ = atan((goal_.y-current_pos_.y)/(goal_.x-current_pos_.x));
+  //dist = sqrt(pow((goal_.y-current_pos_.y),2)+pow((goal_.x-current_pos_.x),2));
+  alpha_ = atan((target_point_.y-current_pos_.y)/(target_point_.x-current_pos_.x));
+  dist = sqrt(pow((target_point_.y-current_pos_.y),2)+pow((target_point_.x-current_pos_.x),2));
+  current_vel_=target_vel_;
+  current_omega_=2*target_vel_*sin(alpha_)/dist;
 }
 

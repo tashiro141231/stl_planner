@@ -13,6 +13,8 @@
 #include "stdio.h"
 
 #include "stl_planner/nav_core.h"
+#include "nav_msgs/Path.h"
+
 
 class PP_Planner{
     public: 
@@ -38,6 +40,8 @@ class PP_Planner{
         double getVelOut();
         double getOmgOut();
         std::vector<Point> getPath();
+        geometry_msgs::Point select_target();
+        nav_msgs::Path global_path;
         
     private:
         bool is_set_goal_;
@@ -66,5 +70,6 @@ class PP_Planner{
         double alpha_;
         double look_ahead_distance_=3.0;
         double target_vel_;
-
+        double dist;
+        geometry_msgs::Point target_point_;
 };

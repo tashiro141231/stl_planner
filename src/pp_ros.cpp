@@ -34,7 +34,7 @@ void PurePursuit_ROS::PlannerInitialize() {
     pub_pp_vw_ = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1); 
     //pub_goal_ = nh.advertise<geometry_msgs::PoseStamped>("purepursuit_planner/goal", 1);
     pub_pp_path_ = nh.advertise<nav_msgs::Path>("purepursuit_local_path", 1000);
-
+    astar_sub_ = nh.subscribe<nav_msgs::Path>("global_plan", 1,&PurePursuit_ROS::GlobalPlanCallback,this);
     double max_vel, min_vel, max_acc, max_w, min_w, max_dw, dt;
     double v_resolution, w_resolution, predict_time;
     double goal_gain, speed_gain, ob_gain, robot_radius;
@@ -62,7 +62,8 @@ void PurePursuit_ROS::setGoal(geometry_msgs::PoseStamped msg) {
   goal.y = y;
   goal.theta = theta;
   pp.setStartGoal(getCurrentPos(), goal);
-  pub_goal_.publish(target);
+  //pub_goal_.publish(target);
+  
   //nav_msgs::Path p = path_to_rospath(pp.getPath(), getGlobalFrame()); //calc path to goal
   //PubLocalPath(p);
   //ROS_INFO("outing");
@@ -94,6 +95,10 @@ void PurePursuit_ROS::PubVelOmgOutput(double v, double w) {
   out.linear.x = v;
   out.angular.z = w;
   pub_pp_vw_.publish(out);
+}
+
+void PurePursuit_ROS::GlobalPlanCallback(nav_msgs::Path path){
+  pp.global_path=path;
 }
 
 void PurePursuit_ROS::main_loop() {

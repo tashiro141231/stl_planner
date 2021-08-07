@@ -55,6 +55,9 @@ void PP_Planner::SetParams(double v_max, double v_min, double max_acc, double w_
 }
 
 bool PP_Planner::UpdateVW() {
+  std::cout << "Goal: " << goal_.x << "," << goal_.y <<std::endl;
+  std::cout << "target: " << target_point_.x <<","<<target_point_.x << std::endl;
+  
   if(is_set_goal_) {
     pure_pursuit(); 
     std::cout << "V: " << current_vel_ << " W: " << current_omega_ << std::endl;
@@ -106,12 +109,16 @@ double PP_Planner::angle_correct(double theta){
 
 geometry_msgs::Point PP_Planner::select_target(){
   geometry_msgs::Point target;
+  std::cout<<"path size"<<global_path.poses.size()<<std::endl;
   for(int i=0;i<global_path.poses.size();i++){
     geometry_msgs::Point p = global_path.poses[i].pose.position;
     if( sqrt(pow((p.y-current_pos_.y),2)+pow((p.x-current_pos_.x),2))< look_ahead_distance_){
       target=p;
     }
   }
+  if (global_path.poses.size()<1){
+    target.x=goal_.x;target.y=goal_.y;target.z=0;
+  };
   return target;
 }
 
@@ -123,5 +130,7 @@ void PP_Planner::pure_pursuit(){
   dist = sqrt(pow((target_point_.y-current_pos_.y),2)+pow((target_point_.x-current_pos_.x),2));
   current_vel_=target_vel_;
   current_omega_=2*target_vel_*sin(alpha_)/dist;
+  std::cout<<"target_omega = "<<2*target_vel_*sin(alpha_)/dist<<std::endl;
+  //current_vel_=0;current_omega_=0;
 }
 

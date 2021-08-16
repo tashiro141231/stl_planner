@@ -99,9 +99,6 @@ void PurePursuit_ROS::PubVelOmgOutput(double v, double w) {
 
 void PurePursuit_ROS::GlobalPlanCallback(nav_msgs::Path path){
   std::cout<<"path callback"<<std::endl;
-  for(int i=0;i<100;i++){
-    std::cout<<"-----------------------"<<std::endl;
-  }
   pp.global_path=path;
 }
 

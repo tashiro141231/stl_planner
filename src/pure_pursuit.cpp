@@ -56,7 +56,7 @@ void PP_Planner::SetParams(double v_max, double v_min, double max_acc, double w_
 
 bool PP_Planner::UpdateVW() {
   std::cout << "Goal: " << goal_.x << "," << goal_.y <<std::endl;
-  std::cout << "target: " << target_point_.x <<","<<target_point_.x << std::endl;
+  std::cout << "target: " << target_point_.x <<","<<target_point_.y<< std::endl;
   
   if(is_set_goal_) {
     pure_pursuit(); 
@@ -110,10 +110,32 @@ double PP_Planner::angle_correct(double theta){
 geometry_msgs::Point PP_Planner::select_target(){
   geometry_msgs::Point target;
   std::cout<<"path size"<<global_path.poses.size()<<std::endl;
+  geometry_msgs::Point nearest;
+  double nearest_d;
+  int nearest_ind;
+  for(int i=0;i<global_path.poses.size();i++){
+     geometry_msgs::Point p = global_path.poses[i].pose.position;
+    if(i=0){
+      nearest_d= sqrt(pow((p.y-current_pos_.y),2)+pow((p.x-current_pos_.x),2));
+      nearest_ind=0;
+      nearest = p;
+    }
+    if( sqrt(pow((p.y-current_pos_.y),2)+pow((p.x-current_pos_.x),2))< nearest_d){
+      nearest_d= sqrt(pow((p.y-current_pos_.y),2)+pow((p.x-current_pos_.x),2));
+      nearest=p;
+    }
+    if(target.x==0&&target.y==0){
+      target.x=goal_.x;target.y=goal_.y;target.z=0;
+    }
+  }
+
   for(int i=0;i<global_path.poses.size();i++){
     geometry_msgs::Point p = global_path.poses[i].pose.position;
     if( sqrt(pow((p.y-current_pos_.y),2)+pow((p.x-current_pos_.x),2))< look_ahead_distance_){
       target=p;
+    }
+    if(target.x==0&&target.y==0){
+      target.x=goal_.x;target.y=goal_.y;target.z=0;
     }
   }
   if (global_path.poses.size()<1){

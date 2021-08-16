@@ -148,7 +148,6 @@ add_executable(state_machine
   src/state_machine.cpp
   src/gp.cpp
   src/lp.cpp
-  src/
 )
 
 add_executable(line_planner_ros

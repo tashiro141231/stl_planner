@@ -12,7 +12,6 @@ void LinePlanner::Initialize(double max_vel, double min_vel, double acc, double 
   max_omega_ = max_w;
   min_omega_ = -max_w;
   acc_ = acc;
-  decel_ = 0.2;
   dt_ = 1 / loop_rate;
   Ko_ = Ko;
   Kp_ = Kp;
@@ -23,9 +22,6 @@ void LinePlanner::Initialize(double max_vel, double min_vel, double acc, double 
   prev_omega_ = 0;
   target_vel_ = 0;
   target_omega_ = 0;
-  remain_distance_ = 0;
-  deceleration_distance_ = 0.5;
-  goal_distance_ = 0.2;
   
   //Stabele statement : Ko > 0 && Ko*Kp - Ke > 0 && Ko*Kp*Ke - Ke*Ke > 0
   if(Ko_ <=0 || Ko_ * Kp_ - Ke <=0 || Ko_ * Kp_ * Ke_ - Ke_*Ke_ <= 0)
@@ -34,31 +30,17 @@ void LinePlanner::Initialize(double max_vel, double min_vel, double acc, double 
 
 bool LinePlanner::UpdateVW() {
   if(is_set_goal_) {
-    if(remain_distance_ <= deceleration_distance_)  start_deceleration_ = true;
     //Update velocity
-    if(!start_deceleration_) {
-      if(target_vel_ < max_vel_) {
-        target_vel_ += acc_ * dt_;
-      }
-      else {
-        target_vel_ = max_vel_;
-      }
+    if(target_vel_ < max_vel_) {
+      target_vel_ += acc_ * dt_;
     }
-    //Deceleration section
     else {
-      //target_vel_ = max_vel_ * (remain_distance_ - goal_distance_) / (deceleration_distance_ - goal_distance_);
-      if(target_vel_ < 0.2) {
-        target_vel_ = 0.2;
-      }
-      else {
-        target_vel_ -= decel_ * dt_;
-      }
+      target_vel_ = max_vel_;
     }
-
     //Update omega
     UpdateFeedbackParam();
     double add = dt_* (Ke_ * eta_ + Kp_ * phi_ + Ko_ * omega_diff_);
-    //std::cout << "add: " << add << " dt: " << dt_ << std::endl;
+    std::cout << "add: " << add << " dt: " << dt_ << std::endl;
     target_omega_ = prev_omega_ - add;
     if(std::abs(target_omega_) > std::abs(max_omega_)) {
       if(target_omega_ > 0) {
@@ -70,7 +52,7 @@ bool LinePlanner::UpdateVW() {
     }
     //Update previous omega
     prev_omega_ = target_omega_;
-    //std::cout << "V: " << target_vel_ << " W: " << target_omega_ << " phi: " << phi_ /M_PI * 180 << "\n" << std::endl;
+    std::cout << "V: " << target_vel_ << " W: " << target_omega_ << " phi: " << phi_ /M_PI * 180 << "\n" << std::endl;
     return true;
   }
   return false;
@@ -138,28 +120,21 @@ void LinePlanner::InitTargetLineGoal() {
 
 bool LinePlanner::goalCheck() {
   if(is_set_goal_) {
-    double dis = remain_distance_;
-    if(dis < goal_distance_) {
+    double dis = hypot((current_pos_.x - goal_.x), (current_pos_.y - goal_.y));
+    if(dis < 0.2) {
       std::cout << "Has reached the goal." << std::endl;
       is_set_goal_ = false;
       //target_vel_ = 0;
       //target_omega_ = 0;
       prev_omega_ = 0;
-      start_deceleration_ = false;
       return true;
     }
   }
   return false;
 }
 
-double LinePlanner::calc_distance(Point p1, Point p2) {
-  double dis = hypot(p1.x - p2.x, p1.y - p2.y);
-  return dis;
-}
-
 void LinePlanner::setCurrentPosition(Point point) {
   current_pos_ = point;
-  remain_distance_ = calc_distance(current_pos_, goal_);
   //if(is_set_goal_) {
   //  std::cout << "Start x: " << start_.x << " y: " << start_.y << " theta: " << start_.theta * 180 / M_PI << std::endl;
   //  std::cout << "Goal x: " << goal_.x << " y: " << goal_.y << " theta: " << goal_.theta * 180 / M_PI << std::endl;

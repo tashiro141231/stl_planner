@@ -7,4 +7,7 @@
     <rosparam command="load" file="$(find stl_planner)/config/stl_planner_config.yaml"/>
   </node>
 
+  <!-- Map server -->
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+
 </launch>

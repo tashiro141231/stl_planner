@@ -24,7 +24,6 @@ class LinePlanner {
         void UpdateFeedbackParam();
         bool getCost(int x, int y);
         bool goalCheck();
-        double calc_distance(Point p1, Point p2);
         double ConvAngleRange(double value);
         void InitTargetLine();
         void InitTargetLineGoal();
@@ -48,11 +47,7 @@ class LinePlanner {
 
     private:
         bool is_set_goal_;
-        bool start_deceleration_;
-        double deceleration_distance_;
-        double goal_distance_;
         Point start_, goal_;
-        double remain_distance_;
         double map_resolution_;
         int map_width_, map_height_;
         Point map_lower_left_;
@@ -68,7 +63,6 @@ class LinePlanner {
         double current_omega_, prev_omega_;
         double target_vel_, target_omega_;
         double acc_;
-        double decel_;
         double dt_;
         // For Feedback
         double Ke_, Kp_, Ko_;

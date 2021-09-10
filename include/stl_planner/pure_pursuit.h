@@ -72,4 +72,5 @@ class PP_Planner{
         double target_vel_;
         double dist;
         geometry_msgs::Point target_point_;
+        double theta_;
 };

@@ -148,7 +148,9 @@ void PP_Planner::pure_pursuit(){
   target_point_=select_target();
   //alpha_ = atan((goal_.y-current_pos_.y)/(goal_.x-current_pos_.x));
   //dist = sqrt(pow((goal_.y-current_pos_.y),2)+pow((goal_.x-current_pos_.x),2));
-  alpha_ = atan((target_point_.y-current_pos_.y)/(target_point_.x-current_pos_.x));
+  theta_ = 0;
+  theta_ = current_pos_.theta;
+  alpha_ = atan((target_point_.y-current_pos_.y)/(target_point_.x-current_pos_.x))-theta_;
   dist = sqrt(pow((target_point_.y-current_pos_.y),2)+pow((target_point_.x-current_pos_.x),2));
   current_vel_=target_vel_;
   current_omega_=2*target_vel_*sin(alpha_)/dist;

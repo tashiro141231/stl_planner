@@ -6,6 +6,7 @@
 */
 #include "stl_planner/pure_pursuit.h"
 #include <algorithm>
+#include <math.h>
 
 PP_Planner::PP_Planner(){
   current_path_ = {{0,0,0}};
@@ -18,7 +19,7 @@ void PP_Planner::Initialize(double max_vel, double min_vel, double max_acc, doub
   max_acc_ = max_acc;
   max_w_ = max_w;//[rad/s]
   min_w_ = min_w;
-  target_vel_=max_vel_*0.3;
+  target_vel_=max_vel_*0.2;
 }
 
 
@@ -115,7 +116,7 @@ geometry_msgs::Point PP_Planner::select_target(){
   int nearest_ind;
   for(int i=0;i<global_path.poses.size();i++){
      geometry_msgs::Point p = global_path.poses[i].pose.position;
-    if(i=0){
+    if(i==0){
       nearest_d= sqrt(pow((p.y-current_pos_.y),2)+pow((p.x-current_pos_.x),2));
       nearest_ind=0;
       nearest = p;
@@ -148,12 +149,30 @@ void PP_Planner::pure_pursuit(){
   target_point_=select_target();
   //alpha_ = atan((goal_.y-current_pos_.y)/(goal_.x-current_pos_.x));
   //dist = sqrt(pow((goal_.y-current_pos_.y),2)+pow((goal_.x-current_pos_.x),2));
-  theta_ = 0;
   theta_ = current_pos_.theta;
-  alpha_ = atan((target_point_.y-current_pos_.y)/(target_point_.x-current_pos_.x))-theta_;
+  //alpha0=atan((target_point_.y-current_pos_.y)/(target_point_.x-current_pos_.x));
+  alpha0=atan2((target_point_.y-current_pos_.y),(target_point_.x-current_pos_.x));
+  //alpha_=alpha0-theta_;
+  alpha_=atan2((target_point_.y-current_pos_.y),(target_point_.x-current_pos_.x))-theta_;
+  while(abs(theta_)>M_PI){
+    if(theta_>M_PI){
+      theta_-=2*M_PI;
+    }else{
+      theta_+=2*M_PI;
+    }
+  }
   dist = sqrt(pow((target_point_.y-current_pos_.y),2)+pow((target_point_.x-current_pos_.x),2));
   current_vel_=target_vel_;
   current_omega_=2*target_vel_*sin(alpha_)/dist;
+  if(abs(alpha_)<=(60*M_PI/180)){
+  }else if(alpha_>(60*M_PI/180)||abs(alpha_)>M_PI/2){
+    current_vel_=0;
+    current_omega_=max_w_*0.2;
+  }else if(alpha_<(-60*M_PI/180)){
+    current_vel_=0;
+    current_omega_=min_w_*0.2;
+  }else{}
+  std::cout<<"alpha0,alpha = "<<alpha0*180/M_PI<<" , "<<alpha_*180/M_PI<<std::endl;
   std::cout<<"target_omega = "<<2*target_vel_*sin(alpha_)/dist<<std::endl;
   //current_vel_=0;current_omega_=0;
 }

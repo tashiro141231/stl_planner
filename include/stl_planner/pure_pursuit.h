@@ -67,6 +67,7 @@ class PP_Planner{
         double max_dw_;//[rad/ss]
         double max_acc_;//[m/ss]
 
+        double alpha0;
         double alpha_;
         double look_ahead_distance_=3.0;
         double target_vel_;

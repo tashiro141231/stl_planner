@@ -19,7 +19,8 @@ void PP_Planner::Initialize(double max_vel, double min_vel, double max_acc, doub
   max_acc_ = max_acc;
   max_w_ = max_w;//[rad/s]
   min_w_ = min_w;
-  target_vel_=max_vel_*0.2;
+  target_vel_=max_vel_*0.8;
+  stop_min_vel_=0.1;
 }
 
 
@@ -114,8 +115,9 @@ geometry_msgs::Point PP_Planner::select_target(){
   geometry_msgs::Point nearest;
   double nearest_d;
   int nearest_ind;
+  geometry_msgs::Point p;
   for(int i=0;i<global_path.poses.size();i++){
-     geometry_msgs::Point p = global_path.poses[i].pose.position;
+     p = global_path.poses[i].pose.position;
     if(i==0){
       nearest_d= sqrt(pow((p.y-current_pos_.y),2)+pow((p.x-current_pos_.x),2));
       nearest_ind=0;
@@ -131,7 +133,7 @@ geometry_msgs::Point PP_Planner::select_target(){
   }
 
   for(int i=0;i<global_path.poses.size();i++){
-    geometry_msgs::Point p = global_path.poses[i].pose.position;
+    p = global_path.poses[i].pose.position;
     if( sqrt(pow((p.y-current_pos_.y),2)+pow((p.x-current_pos_.x),2))< look_ahead_distance_){
       target=p;
     }
@@ -141,18 +143,13 @@ geometry_msgs::Point PP_Planner::select_target(){
   }
   if (global_path.poses.size()<1){
     target.x=goal_.x;target.y=goal_.y;target.z=0;
-  };
+  }
   return target;
 }
 
 void PP_Planner::pure_pursuit(){
   target_point_=select_target();
-  //alpha_ = atan((goal_.y-current_pos_.y)/(goal_.x-current_pos_.x));
-  //dist = sqrt(pow((goal_.y-current_pos_.y),2)+pow((goal_.x-current_pos_.x),2));
   theta_ = current_pos_.theta;
-  //alpha0=atan((target_point_.y-current_pos_.y)/(target_point_.x-current_pos_.x));
-  alpha0=atan2((target_point_.y-current_pos_.y),(target_point_.x-current_pos_.x));
-  //alpha_=alpha0-theta_;
   alpha_=atan2((target_point_.y-current_pos_.y),(target_point_.x-current_pos_.x))-theta_;
   while(abs(theta_)>M_PI){
     if(theta_>M_PI){
@@ -161,9 +158,18 @@ void PP_Planner::pure_pursuit(){
       theta_+=2*M_PI;
     }
   }
-  dist = sqrt(pow((target_point_.y-current_pos_.y),2)+pow((target_point_.x-current_pos_.x),2));
+  dist_ = sqrt(pow((target_point_.y-current_pos_.y),2)+pow((target_point_.x-current_pos_.x),2));
+  //stop_gain
+  target_vel_=max_vel_*0.8;//0.4m/s
+  if(stop_mode_&&dist_<2&&dist_>0.5){
+    std::cout<<"stop_mode"<<std::endl;
+    target_vel_=(target_vel_-stop_min_vel_)*(dist_-0.5)/(2-0.5);
+  }else if(stop_mode_&&dist_<0.5){
+    std::cout<<"stop_mode"<<std::endl;
+    target_vel_=stop_min_vel_;//0.1m/s
+  }else{}
   current_vel_=target_vel_;
-  current_omega_=2*target_vel_*sin(alpha_)/dist;
+  current_omega_=2*target_vel_*sin(alpha_)/dist_;
   if(abs(alpha_)<=(60*M_PI/180)){
   }else if(alpha_>(60*M_PI/180)||abs(alpha_)>M_PI/2){
     current_vel_=0;
@@ -172,8 +178,8 @@ void PP_Planner::pure_pursuit(){
     current_vel_=0;
     current_omega_=min_w_*0.2;
   }else{}
-  std::cout<<"alpha0,alpha = "<<alpha0*180/M_PI<<" , "<<alpha_*180/M_PI<<std::endl;
-  std::cout<<"target_omega = "<<2*target_vel_*sin(alpha_)/dist<<std::endl;
+  std::cout<<"alpha = "<<alpha_*180/M_PI<<std::endl;
+  std::cout<<"target_omega = "<<current_omega_<<std::endl;
   //current_vel_=0;current_omega_=0;
 }
 

@@ -1,3 +1,12 @@
+//////////
+gazebo上simulation用
+roslaunch turtlebot3_gazebo  turtlebot3_world.launch 
+roslaunch stl_planner costmap_test.launch
+roslaunch stl_planner astar_sim.launch
+roslaunch stl_planner purepursuit_sim.launch 
+
+////////////////
+参考情報
 $ roslaunch turtlebot3_gazebo  turtlebot3_world.launch 
 Simulator setup and turtlebot's tf start publishing(GUI off)
 
@@ -21,4 +30,5 @@ $ roslaunch turtlebot3_teleop turtlebot3_teleop_key.launch
 
 roslaunch turtlebot3_fake turtlebot3_fake.launch
 robot_state_publisherなど起動
+
 

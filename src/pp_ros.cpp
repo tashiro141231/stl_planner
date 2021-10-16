@@ -13,6 +13,8 @@
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/TransformStamped.h"
 #include "geometry_msgs/Twist.h"
+#include "std_msgs/String.h"
+#include "std_msgs/Bool.h"
 
 #include <string>
 #include <vector>
@@ -22,8 +24,10 @@
 #include <stl_planner/planner_base_ros.h>
 
 PurePursuit_ROS::PurePursuit_ROS(tf2_ros::Buffer& tf) : PlannerBaseROS(tf)
- {
-   planner_initialized_ = false;
+{
+  planner_initialized_ = false;
+  stop_navigation_=false;
+  stop_mode_ =false;
   PlannerInitialize();
 }
 
@@ -34,7 +38,10 @@ void PurePursuit_ROS::PlannerInitialize() {
     pub_pp_vw_ = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1); 
     //pub_goal_ = nh.advertise<geometry_msgs::PoseStamped>("purepursuit_planner/goal", 1);
     pub_pp_path_ = nh.advertise<nav_msgs::Path>("purepursuit_local_path", 1000);
+    pub_navigation_state_ = nh.advertise<std_msgs::String>("$node$_navigation_state",1000);
     astar_sub_ = nh.subscribe<nav_msgs::Path>("global_plan", 1,&PurePursuit_ROS::GlobalPlanCallback,this);
+    sub_stop_mode_ = nh.subscribe<std_msgs::Bool>("stop_mode", 1,&PurePursuit_ROS::StopModeCallback,this);
+    sub_stop_navigation_ = nh.subscribe<std_msgs::Bool>("stop_navigation", 1,&PurePursuit_ROS::StopNavigationCallback,this);    
     double max_vel, min_vel, max_acc, max_w, min_w, max_dw, dt;
     double v_resolution, w_resolution, predict_time;
     double goal_gain, speed_gain, ob_gain, robot_radius;
@@ -102,6 +109,15 @@ void PurePursuit_ROS::GlobalPlanCallback(nav_msgs::Path path){
   pp.global_path=path;
 }
 
+void PurePursuit_ROS::StopModeCallback(std_msgs::Bool stop_mode){
+  stop_mode_=stop_mode.data;
+  pp.stop_mode_=stop_mode_;
+}
+
+void PurePursuit_ROS::StopNavigationCallback(std_msgs::Bool stop_navigation){
+  stop_navigation_=stop_navigation.data;
+}
+
 void PurePursuit_ROS::main_loop() {
   ros::Rate loop_rate(getLoopRate());
   double V=0;
@@ -111,11 +127,18 @@ void PurePursuit_ROS::main_loop() {
   UpdateCurrentPosition();
     if(pp.goalCheck()) {
       PubVelOmgOutput(0,0);
+      navigation_state_.data="goal";
+      pub_navigation_state_.publish(navigation_state_);
     }else{
+      navigation_state_.data="timeout";
+      pub_navigation_state_.publish(navigation_state_);
     }
     ros::spinOnce();
     std::cout<<"vw_update_check"<<std::endl;
-    if(pp.UpdateVW()) {
+    if(stop_navigation_){
+      PubVelOmgOutput(0,0);
+      std::cout<<"stop_navigation"<<std::endl;
+    }else if(pp.UpdateVW()) {
       std::cout<<"running"<<std::endl;
       //nav_msgs::Path p = path_to_rospath(pp.getPath(), getGlobalFrame());
       //PubLocalPath(p);
@@ -125,8 +148,9 @@ void PurePursuit_ROS::main_loop() {
       //sleep(60);
     }else{
       PubVelOmgOutput(0,0);
-      std::cout<<"stop"<<std::endl;
+      std::cout<<"goal stop"<<std::endl;
     }
+
     loop_rate.sleep();
   }
 }

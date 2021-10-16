@@ -2,6 +2,8 @@
 #include <stl_planner/nav_core.h>
 #include <stl_planner/pure_pursuit.h>
 #include <stl_planner/planner_base_ros.h>
+#include "std_msgs/Bool.h"
+#include "std_msgs/String.h"
 
 class PurePursuit_ROS : PlannerBaseROS {
   public:
@@ -19,15 +21,23 @@ class PurePursuit_ROS : PlannerBaseROS {
     void PubLocalPath(nav_msgs::Path path);
     void PubGlobalPath(nav_msgs::Path path);
     void PubVelOmgOutput(double v, double w);
-    
+    void StopModeCallback(std_msgs::Bool stop_mode);
+    void StopNavigationCallback(std_msgs::Bool stop_navigation);
   
     bool planner_initialized_;
 
     ros::Publisher pub_pp_vw_;
     ros::Publisher pub_goal_;
     ros::Publisher pub_pp_path_;
+    ros::Publisher pub_navigation_state_;
 
-    std::string astar_topic_;
+    //std::string astar_topic_;
     ros::Subscriber astar_sub_;
+    ros::Subscriber sub_stop_mode_;
+    ros::Subscriber sub_stop_navigation_;
+
+    std_msgs::String navigation_state_;
+    bool stop_navigation_;
+    bool stop_mode_;
 };
 

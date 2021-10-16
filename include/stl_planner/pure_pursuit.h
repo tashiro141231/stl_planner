@@ -42,6 +42,7 @@ class PP_Planner{
         std::vector<Point> getPath();
         geometry_msgs::Point select_target();
         nav_msgs::Path global_path;
+        bool stop_mode_;
         
     private:
         bool is_set_goal_;
@@ -71,7 +72,8 @@ class PP_Planner{
         double alpha_;
         double look_ahead_distance_=3.0;
         double target_vel_;
-        double dist;
+        double dist_;
         geometry_msgs::Point target_point_;
         double theta_;
+        double stop_min_vel_;
 };

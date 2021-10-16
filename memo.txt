@@ -1,0 +1,13 @@
+behavier_tree側からも実装してない部分ある
+下のトピックを受けて、各モード実装
+共通になる部分はプランナーベース側に実装
+・ "stop_mode" 入力 std_msgs::Bool 
+    True時→減速しながらアプローチ　
+    False時→止まらずに同じ速度でアプローチ
+・ "stop_navigation" 入力 std_msgs::Bool 
+    True:V=0 W=0 にして、即座にアプローチ終了
+    （減速方法は急ブレーキすると機体に悪いので変更するかも）
+・ "$node$_navigation_state" 出力 
+std_msgs::String Goal到達時に ”goal” を出力。
+ Timeout 時は "timeout"
+ （なんか拡張持たせるためにString）

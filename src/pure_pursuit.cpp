@@ -7,6 +7,7 @@
 #include "stl_planner/pure_pursuit.h"
 #include <algorithm>
 #include <math.h>
+#include <algorithm>
 
 PP_Planner::PP_Planner(){
   current_path_ = {{0,0,0}};
@@ -20,7 +21,8 @@ void PP_Planner::Initialize(double max_vel, double min_vel, double max_acc, doub
   max_w_ = max_w;//[rad/s]
   min_w_ = min_w;
   target_vel_=max_vel_*0.8;
-  stop_min_vel_=0.1;
+  stop_min_vel_=0.2;
+  r_=0;
 }
 
 
@@ -87,7 +89,7 @@ bool PP_Planner::isRobotPlannning() {
 bool PP_Planner::goalCheck() {
   if(is_set_goal_) {
     double dis = hypot((current_pos_.x - goal_.x), (current_pos_.y - goal_.y));
-    if(dis < 0.2) {
+    if(dis < 0.1) {
       is_set_goal_ = false;
       return true;
     }
@@ -151,35 +153,44 @@ void PP_Planner::pure_pursuit(){
   target_point_=select_target();
   theta_ = current_pos_.theta;
   alpha_=atan2((target_point_.y-current_pos_.y),(target_point_.x-current_pos_.x))-theta_;
-  while(abs(theta_)>M_PI){
-    if(theta_>M_PI){
-      theta_-=2*M_PI;
+  while(abs(alpha_)>M_PI){
+    if(alpha_>M_PI){
+      alpha_-=2*M_PI;
     }else{
-      theta_+=2*M_PI;
+      alpha_+=2*M_PI;
     }
   }
   dist_ = sqrt(pow((target_point_.y-current_pos_.y),2)+pow((target_point_.x-current_pos_.x),2));
+  r_=abs(dist_/(2*sin(alpha_)));
   //stop_gain
   target_vel_=max_vel_*0.8;//0.4m/s
-  if(stop_mode_&&dist_<2&&dist_>0.5){
+  //target_vel_=0.5;
+  if(stop_mode_&&dist_<1&&dist_>0.2){
     std::cout<<"stop_mode"<<std::endl;
-    target_vel_=(target_vel_-stop_min_vel_)*(dist_-0.5)/(2-0.5);
-  }else if(stop_mode_&&dist_<0.5){
+    target_vel_=(target_vel_-stop_min_vel_)*(dist_-0.2)/(1-0.2)+stop_min_vel_;
+    target_vel_=std::max(target_vel_,stop_min_vel_);
+  }else if(stop_mode_&&dist_<0.2){
     std::cout<<"stop_mode"<<std::endl;
     target_vel_=stop_min_vel_;//0.1m/s
   }else{}
+  if(r_<0.5)target_vel_=stop_min_vel_;
   current_vel_=target_vel_;
   current_omega_=2*target_vel_*sin(alpha_)/dist_;
-  if(abs(alpha_)<=(60*M_PI/180)){
-  }else if(alpha_>(60*M_PI/180)||abs(alpha_)>M_PI/2){
+
+  //角度が大きすぎる時の旋回
+  if(abs(alpha_)<=(80*M_PI/180)){
+  }else if(alpha_>(80*M_PI/180)||abs(alpha_)>M_PI){
     current_vel_=0;
     current_omega_=max_w_*0.2;
-  }else if(alpha_<(-60*M_PI/180)){
+  }else if(alpha_<(-80*M_PI/180)){
     current_vel_=0;
     current_omega_=min_w_*0.2;
   }else{}
+  
+  current_omega_=std::max(min_w_,current_omega_);
+  current_omega_=std::min(max_w_,current_omega_);
   std::cout<<"alpha = "<<alpha_*180/M_PI<<std::endl;
-  std::cout<<"target_omega = "<<current_omega_<<std::endl;
+  //std::cout<<"target_omega = "<<current_omega_<<std::endl;
   //current_vel_=0;current_omega_=0;
 }
 

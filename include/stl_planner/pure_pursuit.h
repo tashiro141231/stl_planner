@@ -76,4 +76,6 @@ class PP_Planner{
         geometry_msgs::Point target_point_;
         double theta_;
         double stop_min_vel_;
+
+        double r_;
 };

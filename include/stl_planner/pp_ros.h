@@ -4,6 +4,7 @@
 #include <stl_planner/planner_base_ros.h>
 #include "std_msgs/Bool.h"
 #include "std_msgs/String.h"
+#include <time.h>
 
 class PurePursuit_ROS : PlannerBaseROS {
   public:
@@ -39,5 +40,8 @@ class PurePursuit_ROS : PlannerBaseROS {
     std_msgs::String navigation_state_;
     bool stop_navigation_;
     bool stop_mode_;
+    time_t time_goalset;
+    time_t now;
+    bool waiting;
 };
 

@@ -44,17 +44,29 @@ void PurePursuit_ROS::PlannerInitialize() {
     astar_sub_ = nh.subscribe<nav_msgs::Path>("global_plan", 1,&PurePursuit_ROS::GlobalPlanCallback,this);
     sub_stop_mode_ = nh.subscribe<std_msgs::Bool>("stop_mode", 1,&PurePursuit_ROS::StopModeCallback,this);
     sub_stop_navigation_ = nh.subscribe<std_msgs::Bool>("stop_navigation", 1,&PurePursuit_ROS::StopNavigationCallback,this);    
-    double max_vel, min_vel, max_acc, max_w, min_w, max_dw, dt;
+    double max_vel, min_vel, max_acc, stop_dec,max_w, min_w, max_dw, dt,set_vel,wp_range,goal_range;
+    double stop_vel,stop_dist,look_dist;
     double v_resolution, w_resolution, predict_time;
     double goal_gain, speed_gain, ob_gain, robot_radius;
 
+    private_nh.getParam("line_planner/loop_rate", rate_);
     private_nh.getParam("pp/max_vel", max_vel);
     private_nh.getParam("pp/min_vel", min_vel);
     private_nh.getParam("pp/max_acc", max_acc);
+    private_nh.getParam("pp/stop_dec", stop_dec);
     private_nh.getParam("pp/max_w", max_w);
     private_nh.getParam("pp/min_w", min_w);
+    private_nh.getParam("pp/max_dw", max_dw);
+    private_nh.getParam("pp/set_vel", set_vel);
+    private_nh.getParam("pp/wp_range", wp_range);
+    private_nh.getParam("pp/goal_range", goal_range);
+    private_nh.getParam("pp/stop_vel", stop_vel);
+    private_nh.getParam("pp/look_dist", look_dist);
+    private_nh.getParam("pp/stop_dist", stop_dist);
+    private_nh.getParam("pp/predict_time", predict_time);
+    dt=1/rate_;
 
-    pp.Initialize(max_vel, min_vel, max_acc, max_w, min_w) ;
+    pp.Initialize(max_vel, min_vel, max_acc,stop_dec, max_w, min_w,set_vel,wp_range,goal_range,max_dw,dt,stop_vel,look_dist,stop_dist,predict_time) ;
     planner_initialized_ = true;
     time_goalset=0;
     now=0;
@@ -97,7 +109,7 @@ void PurePursuit_ROS::setCurrentPositionToPlanner(Point point) {
 }
 
 void PurePursuit_ROS::PubLocalPath(nav_msgs::Path path) {
-  //pub_pp_path_.publish(path);
+  pub_pp_path_.publish(path);
 }
 
 void PurePursuit_ROS::PubGlobalPath(nav_msgs::Path path) {
@@ -123,56 +135,43 @@ void PurePursuit_ROS::StopModeCallback(std_msgs::Bool stop_mode){
 
 void PurePursuit_ROS::StopNavigationCallback(std_msgs::Bool stop_navigation){
   stop_navigation_=stop_navigation.data;
+  pp.stop_navigation_=stop_navigation.data;
 }
 
 void PurePursuit_ROS::main_loop() {
+  //ros::Rate loop_rate(getLoopRate());
   ros::Rate loop_rate(getLoopRate());
   double V=0;
   double W=0;
   while(ros::ok()) {
-    std::cout<<"v= " <<V <<"  w= " << W<<std::endl;
     UpdateCurrentPosition();
     now = time(nullptr);
-    if(pp.goalCheck()&&waiting) {
-      //PubVelOmgOutput(0,0);
-      if(stop_mode_){
-        PubVelOmgOutput(0,0);
-      }else{}
+    if(pp.goalCheck()&&waiting) {//ゴール判定
+      if(stop_mode_){//stop_modeの時止まる(updateVWのところでも0に近づいてるはずだが)
+        V=0;W=0;
+      }else{}//stom_mode以外でゴールした時は最後のvw維持
       navigation_state_.data="goal";
+      ROS_INFO("goal");
       waiting=false;
       pub_navigation_state_.publish(navigation_state_);
-    }else if(now-time_goalset>10&&waiting){
+    }else if(now-time_goalset>10&&waiting){//timeout処理.止まる.ちなゴールが置かれたら再びwaitingに戻る
       navigation_state_.data="timeout";
       waiting=false;
       pub_navigation_state_.publish(navigation_state_);
-      std::cout<<"timeout"<<std::endl;
-    }else{
-      if(pp.UpdateVW()&&waiting){
-        std::cout<<"running"<<std::endl;
-        PubVelOmgOutput(pp.getVelOut(), pp.getOmgOut());
+      V=0;W=0;
+      ROS_INFO("timeout");
+    }else{//goalでもtimeoutでもない時
+      if(pp.UpdateVW()&&waiting){//goalあってwaitingの時vwを更新
+        ROS_INFO("running");
+        V=pp.getVelOut();
+        W=pp.getOmgOut();
       }else{}
-      ;
     }
+    PubVelOmgOutput(V, W);
+    PubLocalPath(pp.getPath());
+    ROS_INFO("V: %f ,        W: %f",V,W);
+    //ROS_INFO("W: %f",W);
     ros::spinOnce();
-    std::cout<<"vw_update_check"<<std::endl;
-    /*
-    if(stop_navigation_){
-      PubVelOmgOutput(0,0);
-      std::cout<<"stop_navigation"<<std::endl;
-    }else if(pp.UpdateVW()&&waiting) {
-      std::cout<<"running"<<std::endl;
-      //nav_msgs::Path p = path_to_rospath(pp.getPath(), getGlobalFrame());
-      //PubLocalPath(p);
-      V = pp.getVelOut();
-      W = pp.getOmgOut();
-      PubVelOmgOutput(V, W);
-      //sleep(60);
-    }else{
-      //PubVelOmgOutput(0,0);
-      std::cout<<"reached"<<std::endl;
-    }
-    */
-
     loop_rate.sleep();
   }
 }

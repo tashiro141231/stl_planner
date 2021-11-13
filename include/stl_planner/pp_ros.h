@@ -37,6 +37,7 @@ class PurePursuit_ROS : PlannerBaseROS {
     ros::Subscriber sub_stop_mode_;
     ros::Subscriber sub_stop_navigation_;
 
+    double rate_;
     std_msgs::String navigation_state_;
     bool stop_navigation_;
     bool stop_mode_;

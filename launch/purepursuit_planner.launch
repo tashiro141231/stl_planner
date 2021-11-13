@@ -1,9 +1,9 @@
 <launch>
   <!-- Arguments -->
-  <arg name="map_file" default="$(find stl_planner)/maps/map.yaml"/>
+  <arg name="map_file" default="$(find stl_planner)/fake_map/fake_map.yaml"/> 
 
   <!-- statically connect map and odom -->
-  <node pkg="tf" type="static_transform_publisher" name="map_odom_connector" args="-0.5 -0.5 0 0 0 0 map odom 100" />
+  <!-- <node pkg="tf" type="static_transform_publisher" name="map_odom_connector" args="-0.5 -0.5 0 0 0 0 map odom 100" /> -->
 
   <!-- move_base -->
   <node pkg="stl_planner" name="pp_ros" type="pp_ros" output="screen">
@@ -11,5 +11,5 @@
   </node>
 
   <!-- Map server -->
-  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)" />
 </launch>

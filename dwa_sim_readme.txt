@@ -2,8 +2,14 @@
 gazebo上simulation用
 roslaunch turtlebot3_gazebo  turtlebot3_world.launch 
 roslaunch stl_planner costmap_test.launch
-roslaunch stl_planner astar_sim.launch
+///いらん　roslaunch stl_planner astar_sim.launch
 roslaunch stl_planner purepursuit_sim.launch 
+
+///stellaHILS起動用
+roslaunch stl_vehicle vehicle.launch
+roslaunch stl_planner purepursuit_sim.launch
+roslaunch stl_beha... stl_beha...
+rospub joy なんとか/waypoint吐き出し
 
 ////////////////
 参考情報

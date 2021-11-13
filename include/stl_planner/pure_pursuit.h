@@ -14,7 +14,11 @@
 
 #include "stl_planner/nav_core.h"
 #include "nav_msgs/Path.h"
-
+#include <tf/transform_broadcaster.h>
+#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 class PP_Planner{
     public: 
@@ -22,9 +26,9 @@ class PP_Planner{
         ~PP_Planner(){
         }
 
-        void Initialize(double max_vel, double min_vel, double max_acc, double max_w, double min_w) ;
+        void Initialize(double max_vel, double min_vel, double max_acc, double stop_dec,double max_w, double min_w,double set_vel,double wp_range,double goal_range,double max_dw,double dt,double stop_vel,double look_dist,double stop_dist,double predict_time) ;
 
-        void SetParams(double v_max, double v_min, double max_acc, double w_max, double w_min);
+        void SetParams(double v_max, double v_min, double max_acc,double stop_dec, double w_max, double w_min,double set_vel,double wp_range,double goal_range,double max_dw,double dt,double stop_vel,double look_dist,double stop_dist,double predict_time);
         bool UpdateVW();
         bool goalCheck();
         void pure_pursuit();
@@ -39,10 +43,11 @@ class PP_Planner{
         bool isRobotPlannning();
         double getVelOut();
         double getOmgOut();
-        std::vector<Point> getPath();
+        nav_msgs::Path getPath();
         geometry_msgs::Point select_target();
         nav_msgs::Path global_path;
         bool stop_mode_;
+        bool stop_navigation_;
         
     private:
         bool is_set_goal_;
@@ -55,7 +60,6 @@ class PP_Planner{
 
         double current_vel_;
         double current_omega_;
-        std::vector<Point> current_path_;
         double vel_out_;
         double omega_out_;
         Point current_pos_;
@@ -67,15 +71,26 @@ class PP_Planner{
         double min_w_ ;
         double max_dw_;//[rad/ss]
         double max_acc_;//[m/ss]
+        double stop_dec_;
+        double set_vel_;
+        double wp_range_;
+        double goal_range_;
 
         double alpha0;
         double alpha_;
         double look_ahead_distance_=3.0;
         double target_vel_;
+        double target_omega_;
         double dist_;
         geometry_msgs::Point target_point_;
         double theta_;
-        double stop_min_vel_;
+        double stop_vel_;
+        double look_dist_;
+        double stop_dist_;
+        double predict_time_;
 
         double r_;
+        double dt_;
+        bool dist_fix_;
+        int predict_size_;
 };

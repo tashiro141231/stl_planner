@@ -76,6 +76,9 @@ class LPlanner{
         double getOmgOut();
         std::vector<Point> getPath();
 
+        bool stop_mode_;
+        bool stop_navigation_;
+
     private:
         bool is_set_goal_;
         Point start_;

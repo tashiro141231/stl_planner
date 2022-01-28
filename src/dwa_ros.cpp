@@ -13,6 +13,8 @@
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/TransformStamped.h"
 #include "geometry_msgs/Twist.h"
+#include "std_msgs/String.h"
+#include "std_msgs/Bool.h"
 
 #include <string>
 #include <vector>
@@ -23,7 +25,9 @@
 
 DWA_ROS::DWA_ROS(tf2_ros::Buffer& tf) : PlannerBaseROS(tf)
  {
-   planner_initialized_ = false;
+  planner_initialized_ = false;
+  stop_navigation_=false;
+  stop_mode_ =false;
   PlannerInitialize();
 }
 
@@ -36,6 +40,9 @@ void DWA_ROS::PlannerInitialize() {
     pub_goal_ = nh.advertise<geometry_msgs::PoseStamped>("dwa_planner/goal", 1);
     pub_dwa_path_ = nh.advertise<nav_msgs::Path>("dwa_local_path", 1000);
 
+    pub_navigation_state_ = nh.advertise<std_msgs::String>("dwa_navigation_state",1000);
+    sub_stop_mode_ = nh.subscribe<std_msgs::Bool>("stop_mode", 1,&DWA_ROS::StopModeCallback,this);
+    sub_stop_navigation_ = nh.subscribe<std_msgs::Bool>("stop_navigation", 1,&DWA_ROS::StopNavigationCallback,this);    
 
     double max_vel, min_vel, max_acc, max_w, min_w, max_dw, dt;
     double v_resolution, w_resolution, predict_time;
@@ -62,6 +69,9 @@ void DWA_ROS::PlannerInitialize() {
             goal_gain, speed_gain, ob_gain, robot_radius) ;
 
     planner_initialized_ = true;
+    time_goalset=0;
+    now=0;
+    waiting=false;
   }
 }
 
@@ -79,9 +89,10 @@ void DWA_ROS::setGoal(geometry_msgs::PoseStamped msg) {
   dwa.setStartGoal(getCurrentPos(), goal);
   pub_goal_.publish(target);
   nav_msgs::Path p = path_to_rospath(dwa.getPath(), getGlobalFrame()); //calc path to goal
-
+  time_goalset=time(nullptr);
+  waiting=true;
   PubLocalPath(p);
-  ROS_INFO("outing");
+  //ROS_INFO("outing");
 }
 
 void DWA_ROS::setMap(int width, int height, double resolution, Point lower_left, unsigned char* map) {
@@ -110,6 +121,16 @@ void DWA_ROS::PubVelOmgOutput(double v, double w) {
   out.linear.x = v;
   out.angular.z = w;
   pub_dwa_vw_.publish(out);
+}
+
+void DWA_ROS::StopModeCallback(std_msgs::Bool stop_mode){
+  stop_mode_=stop_mode.data;
+  dwa.stop_mode_=stop_mode_;
+}
+
+void DWA_ROS::StopNavigationCallback(std_msgs::Bool stop_navigation){
+  stop_navigation_=stop_navigation.data;
+  dwa.stop_navigation_=stop_navigation.data;
 }
 
 void DWA_ROS::main_loop() {

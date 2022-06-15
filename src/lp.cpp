@@ -6,6 +6,11 @@
 */
 #include "stl_planner/lp.h"
 #include <algorithm>
+#include <sensor_msgs/PointCloud2.h>
+//#include <pcl/conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 LPlanner::LPlanner(){
   current_path_ = {{0,0,0}};
@@ -265,6 +270,7 @@ double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<dNode> 
   inf = 100000;
   double minr = inf;
   for(int ii=0;ii<traj.size();ii+=skip_n){
+    /*ob(yamlマップのコストから計算)
     for(int i=0;i<ob.size();i++){
       double dx = traj[ii].x-ob[i].x;
       double dy = traj[ii].y-ob[i].y;
@@ -274,6 +280,19 @@ double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<dNode> 
         minr =r;
       } else{}
     }
+    */
+
+    //obstacle_2d_から計算
+    for(int i=0;i<obstacle_2d_.points.size();i++){
+      double dx = traj[ii].x-obstacle_2d_.points[i].x;
+      double dy = traj[ii].y-obstacle_2d_.points[i].y;
+
+      double r = sqrt(std::pow(dx,2)+std::pow(dy,2));
+      if(minr>=r){
+        minr =r;
+      } else{}
+    }
+
   }
   if(minr<robot_radius_){
     collision_ = 1;
@@ -369,4 +388,15 @@ void LPlanner::show_ob(std::vector<dNode> ob){
       double y = ob[i].y;
       std::cout<<"x,y="<<x<<","<<y<<std::endl;
     }   
+}
+
+void LPlanner::set_obstacle(pcl::PointCloud<pcl::PointXYZ> obstacle_2d){
+  obstacle_2d_.width=obstacle_2d.width;
+  obstacle_2d_.height=obstacle_2d.height;
+  obstacle_2d_.resize(obstacle_2d_.width*obstacle_2d_.height);
+  for(int i=0;i<obstacle_2d.points.size();i++){
+    obstacle_2d_.points[i].x=obstacle_2d.points[i].x;
+    obstacle_2d_.points[i].y=obstacle_2d.points[i].y;
+    obstacle_2d_.points[i].z=obstacle_2d.points[i].z;
+  }
 }

@@ -13,6 +13,11 @@
 #include "stdio.h"
 
 #include "stl_planner/nav_core.h"
+#include <sensor_msgs/PointCloud2.h>
+//#include <pcl/conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 typedef struct State {
   double x;
@@ -62,6 +67,7 @@ class LPlanner{
         bool goalCheck();
         double angle_correct(double theta);
         std::vector<double> cost_normalize(double goal_cost,double speed_cost, double ob_cost);
+        void set_obstacle(pcl::PointCloud<pcl::PointXYZ> obstacle_2d);
 
         //setter
         void setCurrentPosition(Point point);
@@ -107,6 +113,8 @@ class LPlanner{
         Point current_pos_;
         bool collision_;
         void show_ob(std::vector<dNode> ob);
+
+        pcl::PointCloud<pcl::PointXYZ> obstacle_2d_;
         
         //calc_path_dwa
         double cost_limit_ =1000000;

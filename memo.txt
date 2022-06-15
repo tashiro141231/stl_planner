@@ -11,3 +11,6 @@ behavier_tree側からも実装してない部分ある
 std_msgs::String Goal到達時に ”goal” を出力。
  Timeout 時は "timeout"
  （なんか拡張持たせるためにString）
+
+//オブジェクト
+ /stella_stereo/obstacle_2d

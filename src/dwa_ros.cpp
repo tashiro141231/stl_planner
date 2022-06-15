@@ -22,6 +22,11 @@
 
 #include <stl_planner/dwa_ros.h>
 #include <stl_planner/planner_base_ros.h>
+#include <sensor_msgs/PointCloud2.h>
+//#include <pcl/conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 DWA_ROS::DWA_ROS(tf2_ros::Buffer& tf) : PlannerBaseROS(tf)
  {
@@ -43,6 +48,8 @@ void DWA_ROS::PlannerInitialize() {
     pub_navigation_state_ = nh.advertise<std_msgs::String>("dwa_navigation_state",1000);
     sub_stop_mode_ = nh.subscribe<std_msgs::Bool>("stop_mode", 1,&DWA_ROS::StopModeCallback,this);
     sub_stop_navigation_ = nh.subscribe<std_msgs::Bool>("stop_navigation", 1,&DWA_ROS::StopNavigationCallback,this);    
+
+    sub_obstacle_2d_ = nh.subscribe("stella_stereo/obstacle_2d", 100,&DWA_ROS::Obstacle2dCallback,this);
 
     double max_vel, min_vel, max_acc, max_w, min_w, max_dw, dt;
     double v_resolution, w_resolution, predict_time;
@@ -133,6 +140,11 @@ void DWA_ROS::StopNavigationCallback(std_msgs::Bool stop_navigation){
   dwa.stop_navigation_=stop_navigation.data;
 }
 
+void DWA_ROS::Obstacle2dCallback(const sensor_msgs::PointCloud2ConstPtr& msg){
+  pcl::fromROSMsg (*msg,obstacle_2d_);
+  std::cout<<obstacle_2d_.points.size()<<std::endl;
+}
+
 void DWA_ROS::main_loop() {
   ros::Rate loop_rate(getLoopRate());
   double V=0;
@@ -146,6 +158,7 @@ void DWA_ROS::main_loop() {
     }
     ros::spinOnce();
     std::cout<<"vw_update_check"<<std::endl;
+    dwa.set_obstacle(obstacle_2d_);
     if(dwa.UpdateVW()) {
       std::cout<<"running"<<std::endl;
       //nav_msgs::Path p = path_to_rospath(dwa.getPath(), getGlobalFrame());

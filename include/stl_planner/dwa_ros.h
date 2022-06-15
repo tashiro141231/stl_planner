@@ -6,6 +6,11 @@
 #include "std_msgs/Bool.h"
 #include <time.h>
 
+#include <sensor_msgs/PointCloud2.h>
+//#include <pcl/conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
 class DWA_ROS : PlannerBaseROS {
   public:
     DWA_ROS(tf2_ros::Buffer& tf);
@@ -24,6 +29,7 @@ class DWA_ROS : PlannerBaseROS {
 
     void StopModeCallback(std_msgs::Bool stop_mode);
     void StopNavigationCallback(std_msgs::Bool stop_navigation);
+    void Obstacle2dCallback(const sensor_msgs::PointCloud2ConstPtr& msg);
   
   
     bool planner_initialized_;
@@ -36,6 +42,7 @@ class DWA_ROS : PlannerBaseROS {
 
     ros::Subscriber sub_stop_mode_;
     ros::Subscriber sub_stop_navigation_;
+    ros::Subscriber sub_obstacle_2d_;
 
     double rate_;
     std_msgs::String navigation_state_;
@@ -44,6 +51,7 @@ class DWA_ROS : PlannerBaseROS {
     time_t time_goalset;
     time_t now;
     bool waiting;
+    pcl::PointCloud<pcl::PointXYZ> obstacle_2d_;
 
 };
 

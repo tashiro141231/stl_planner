@@ -30,7 +30,7 @@ pp:
  min_vel: 0
  set_vel: 0.5
  max_acc: 0.5
- stop_dec_: 1.0
+ stop_dec: 1.0
  max_w: 1.0
  min_w: -1.0
  max_dw: 6.981

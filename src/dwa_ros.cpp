@@ -151,9 +151,10 @@ void DWA_ROS::main_loop() {
   double W=0;
 
   while(ros::ok()) {
+    dwa.set_obstacle(obstacle_2d_);
     UpdateCurrentPosition();
     now = time(nullptr);
-    if(pp.goalCheck()&&waiting) {//ゴール判定
+    if(dwa.goalCheck()&&waiting) {//ゴール判定
       if(stop_mode_){//stop_modeの時止まる(updateVWのところでも0に近づいてるはずだが)
         V=0;W=0;
       }else{}//stom_mode以外でゴールした時は最後のvw維持
@@ -168,14 +169,14 @@ void DWA_ROS::main_loop() {
       V=0;W=0;
       ROS_INFO("timeout");
     }else{//goalでもtimeoutでもない時
-      if(pp.UpdateVW()&&waiting){//goalあってwaitingの時vwを更新
+      if(dwa.UpdateVW()&&waiting){//goalあってwaitingの時vwを更新
         ROS_INFO("running");
-        V=pp.getVelOut();
-        W=pp.getOmgOut();
+        V=dwa.getVelOut();
+        W=dwa.getOmgOut();
       }else{}
     }
     PubVelOmgOutput(V, W);
-    PubLocalPath(pp.getPath());
+    PubLocalPath(path_to_rospath(dwa.getPath(), getGlobalFrame()));
     ROS_INFO("V: %f ,        W: %f",V,W);
     //ROS_INFO("W: %f",W);
     ros::spinOnce();

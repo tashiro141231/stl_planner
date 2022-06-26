@@ -163,6 +163,7 @@ void PurePursuit_ROS::main_loop() {
     }else{//goalでもtimeoutでもない時
       if(pp.UpdateVW()&&waiting){//goalあってwaitingの時vwを更新
         ROS_INFO("running");
+        ROS_INFO("stop_navigation = %d",stop_navigation_);
         V=pp.getVelOut();
         W=pp.getOmgOut();
       }else{}

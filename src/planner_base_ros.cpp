@@ -103,7 +103,7 @@ void PlannerBaseROS::CostmapLoadCallback(const nav_msgs::OccupancyGrid msg) {
 }
 
 void PlannerBaseROS::WaypointCallback(geometry_msgs::PoseStamped msg) {
-  ROS_INFO("WEEEEEEEEEEEEEEEEEEEY");
+  //ROS_INFO("WEEEEEEEEEEEEEEEEEEEY");
   setGoal(msg); 
 }
 

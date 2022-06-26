@@ -42,10 +42,10 @@ void DWA_ROS::PlannerInitialize() {
     ros::NodeHandle private_nh("~");
     pub_gp_ = nh.advertise<nav_msgs::Path>("dwa_global_path", 1000);
     pub_dwa_vw_ = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1); 
-    pub_goal_ = nh.advertise<geometry_msgs::PoseStamped>("dwa_planner/goal", 1);
+    pub_goal_ = nh.advertise<geometry_msgs::PoseStamped>("move_base_simple/goal", 1);
     pub_dwa_path_ = nh.advertise<nav_msgs::Path>("dwa_local_path", 1000);
 
-    pub_navigation_state_ = nh.advertise<std_msgs::String>("dwa_navigation_state",1000);
+    pub_navigation_state_ = nh.advertise<std_msgs::String>("pp_ros_navigation_state",1000);
     sub_stop_mode_ = nh.subscribe<std_msgs::Bool>("stop_mode", 1,&DWA_ROS::StopModeCallback,this);
     sub_stop_navigation_ = nh.subscribe<std_msgs::Bool>("stop_navigation", 1,&DWA_ROS::StopNavigationCallback,this);    
 
@@ -70,6 +70,7 @@ void DWA_ROS::PlannerInitialize() {
     private_nh.getParam("dwa/ob_gain", ob_gain);
     private_nh.getParam("dwa/robot_radius", robot_radius);
 
+    std::cout<<"dt"<<dt<<std::endl;
 
     dwa.Initialize(max_vel, min_vel, max_acc, max_w, min_w, 
             max_dw, dt, v_resolution, w_resolution, predict_time, 
@@ -94,11 +95,11 @@ void DWA_ROS::setGoal(geometry_msgs::PoseStamped msg) {
   goal.y = y;
   goal.theta = theta;
   dwa.setStartGoal(getCurrentPos(), goal);
-  pub_goal_.publish(target);
-  nav_msgs::Path p = path_to_rospath(dwa.getPath(), getGlobalFrame()); //calc path to goal
+  //pub_goal_.publish(target);
+  //nav_msgs::Path p = path_to_rospath(dwa.getPath(), getGlobalFrame()); //calc path to goal
   time_goalset=time(nullptr);
   waiting=true;
-  PubLocalPath(p);
+  //PubLocalPath(p);
   //ROS_INFO("outing");
 }
 
@@ -149,7 +150,7 @@ void DWA_ROS::main_loop() {
   ros::Rate loop_rate(getLoopRate());
   double V=0;
   double W=0;
-
+  
   while(ros::ok()) {
     dwa.set_obstacle(obstacle_2d_);
     UpdateCurrentPosition();
@@ -169,11 +170,12 @@ void DWA_ROS::main_loop() {
       V=0;W=0;
       ROS_INFO("timeout");
     }else{//goalでもtimeoutでもない時
+      std::cout<<"waiting"<<waiting<<std::endl;
       if(dwa.UpdateVW()&&waiting){//goalあってwaitingの時vwを更新
         ROS_INFO("running");
         V=dwa.getVelOut();
         W=dwa.getOmgOut();
-      }else{}
+      }else{ROS_INFO("updatevwfalse");}
     }
     PubVelOmgOutput(V, W);
     PubLocalPath(path_to_rospath(dwa.getPath(), getGlobalFrame()));
@@ -182,7 +184,8 @@ void DWA_ROS::main_loop() {
     ros::spinOnce();
     loop_rate.sleep();
   }
-  /* 2021
+  /*
+  //2021
   while(ros::ok()) {
     std::cout<<"v= " <<V <<"  w= " << W<<std::endl;
     UpdateCurrentPosition();

@@ -20,10 +20,9 @@ void LPlanner::Initialize(double max_vel, double min_vel, double max_acc, double
   double max_dw, double dt, double v_resolution, double w_resolution, double predict_time, 
   double goal_gain, double speed_gain, double ob_gain, double robot_radius) {
   is_set_goal_ = false;
-   max_vel_ = max_vel;//[m/s]
-   min_vel_ = min_vel;
+  max_vel_ = max_vel;//[m/s]
+  min_vel_ = min_vel;
   max_acc_ = max_acc;
-
   max_w_ = max_w;//[rad/s]
   min_w_ = min_w;
   max_dw_ = max_dw;//[rad/ss]
@@ -44,6 +43,7 @@ void LPlanner::setStartPoint(Point start) {
 
 void LPlanner::setGoalPoint(Point goal) {
   goal_ = goal;
+  //is_set_goal_ = true;
 }
 
 void LPlanner::setStartGoal(Point start, Point goal) {
@@ -149,6 +149,7 @@ State LPlanner::motion(State x, double v, double w){
 }
 
 bool LPlanner::UpdateVW() {
+  std::cout<<"is_set_goal_"<<is_set_goal_<<std::endl;
   if(is_set_goal_) {
     dwa_control(); 
     std::cout << "V: " << current_vel_ << " W: " << current_omega_ << std::endl;
@@ -168,6 +169,7 @@ DW LPlanner::calc_dynamic_window(State state){
         state.w + max_dw_ * dt_};
     
     //[vmin,vmax, yawrate min, yawrate max]
+    std::cout<<"state="<<state.v<<", max_acc_"<< max_acc_<<", dt_"<< dt_<<std::endl;
    DW dw = {std::max(Vs[0], Vd[0]), std::min(Vs[1], Vd[1]),
          std::max(Vs[2], Vd[2]), std::min(Vs[3], Vd[3])};
   return dw;
@@ -192,7 +194,8 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<dNode> o
   w_min_ = 0;//current_omega?
   std::vector<State> best_traj ={state};
   std::vector<State> traj,traj0;
-  //std::cout<<"w_max:"<<dw.w_max<<" w_min:"<<dw.w_min<<std::endl;
+  std::cout<<"v_max:"<<dw.v_max<<" v_min:"<<dw.v_min<<std::endl;
+  std::cout<<"w_max:"<<dw.w_max<<" w_min:"<<dw.w_min<<std::endl;
   double limit = 0.0001;
   dw.v_min=0;
   int count = 0;
@@ -349,14 +352,38 @@ bool LPlanner::isRobotPlannning() {
 }
 
 bool LPlanner::goalCheck() {
+  /*
   if(is_set_goal_) {
     double dis = hypot((current_pos_.x - goal_.x), (current_pos_.y - goal_.y));
-    if(dis < 0.2) {
+    if(dis < 2.5) {
       is_set_goal_ = false;
       return true;
     }
   }
-  return false;
+  return false;*/
+  bool goal_check =false;
+  bool overtake =false;
+  double range_=2.5;
+  if(stop_mode_)range_=0.3;
+  if(is_set_goal_) {
+    double dis = hypot((current_pos_.x - goal_.x), (current_pos_.y - goal_.y));
+    if(dis < range_) {
+      is_set_goal_ = false;
+      goal_check=true;
+    }
+    double th=atan2((current_pos_.y-goal_.y),(current_pos_.x-goal_.x))-goal_.theta;
+    while(abs(th)>M_PI){
+      if(th>M_PI){
+        th-=2*M_PI;
+      }else{
+        th+=2*M_PI;
+      }
+    }
+    overtake=(abs(th)<M_PI/2);//追い越し判定
+    //goal_check=goal_check||overtake;//距離か追い越しの条件をクリアしてたらクリア.は？
+  }
+  if(goal_check)is_set_goal_ = false;
+  return goal_check;
 }
 
 double LPlanner::angle_correct(double theta){

@@ -149,9 +149,42 @@ void DWA_ROS::main_loop() {
   ros::Rate loop_rate(getLoopRate());
   double V=0;
   double W=0;
+
+  while(ros::ok()) {
+    UpdateCurrentPosition();
+    now = time(nullptr);
+    if(pp.goalCheck()&&waiting) {//ゴール判定
+      if(stop_mode_){//stop_modeの時止まる(updateVWのところでも0に近づいてるはずだが)
+        V=0;W=0;
+      }else{}//stom_mode以外でゴールした時は最後のvw維持
+      navigation_state_.data="goal";
+      ROS_INFO("goal");
+      waiting=false;
+      pub_navigation_state_.publish(navigation_state_);
+    }else if(now-time_goalset>10&&waiting){//timeout処理.止まる.ちなゴールが置かれたら再びwaitingに戻る
+      navigation_state_.data="timeout";
+      waiting=false;
+      pub_navigation_state_.publish(navigation_state_);
+      V=0;W=0;
+      ROS_INFO("timeout");
+    }else{//goalでもtimeoutでもない時
+      if(pp.UpdateVW()&&waiting){//goalあってwaitingの時vwを更新
+        ROS_INFO("running");
+        V=pp.getVelOut();
+        W=pp.getOmgOut();
+      }else{}
+    }
+    PubVelOmgOutput(V, W);
+    PubLocalPath(pp.getPath());
+    ROS_INFO("V: %f ,        W: %f",V,W);
+    //ROS_INFO("W: %f",W);
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
+  /* 2021
   while(ros::ok()) {
     std::cout<<"v= " <<V <<"  w= " << W<<std::endl;
-  UpdateCurrentPosition();
+    UpdateCurrentPosition();
     if(dwa.goalCheck()) {
       PubVelOmgOutput(0,0);
     }else{
@@ -172,5 +205,5 @@ void DWA_ROS::main_loop() {
       std::cout<<"stop"<<std::endl;
     }
     loop_rate.sleep();
-  }
+  }*/
 }

@@ -194,8 +194,8 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<dNode> o
   w_min_ = 0;//current_omega?
   std::vector<State> best_traj ={state};
   std::vector<State> traj,traj0;
-  std::cout<<"v_max:"<<dw.v_max<<" v_min:"<<dw.v_min<<std::endl;
-  std::cout<<"w_max:"<<dw.w_max<<" w_min:"<<dw.w_min<<std::endl;
+  //std::cout<<"v_max:"<<dw.v_max<<" v_min:"<<dw.v_min<<std::endl;
+  //std::cout<<"w_max:"<<dw.w_max<<" w_min:"<<dw.w_min<<std::endl;
   double limit = 0.0001;
   dw.v_min=0;
   int count = 0;
@@ -336,7 +336,7 @@ void LPlanner::dwa_control(){
   DW dw = calc_dynamic_window(state);
   calc_path_dwa(state,dw,goal_,o_map_double_,o_costmap_double_);
   //show_ob(o_map_double_);
-  show_ob(o_costmap_double_);
+  //show_ob(o_costmap_double_);
 }
 
 double LPlanner::getVelOut() {
@@ -363,8 +363,8 @@ bool LPlanner::goalCheck() {
   return false;*/
   bool goal_check =false;
   bool overtake =false;
-  double range_=2.5;
-  if(stop_mode_)range_=0.3;
+  double range_=1.0;
+  if(stop_mode_)range_=0.25;
   if(is_set_goal_) {
     double dis = hypot((current_pos_.x - goal_.x), (current_pos_.y - goal_.y));
     if(dis < range_) {

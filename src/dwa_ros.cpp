@@ -177,6 +177,9 @@ void DWA_ROS::main_loop() {
         W=dwa.getOmgOut();
       }else{ROS_INFO("updatevwfalse");}
     }
+    if(stop_navigation_){
+      V=0;W=0;
+    }
     PubVelOmgOutput(V, W);
     PubLocalPath(path_to_rospath(dwa.getPath(), getGlobalFrame()));
     ROS_INFO("V: %f ,        W: %f",V,W);

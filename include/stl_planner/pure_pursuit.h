@@ -33,12 +33,15 @@ class PP_Planner{
         bool goalCheck();
         void pure_pursuit();
         double angle_correct(double theta);
+        bool goalYawCheck();
+        double diff_goalYaw();
 
         //setter
         void setCurrentPosition(Point point);
         void setStartPoint(Point start);
         void setGoalPoint(Point goal);
         void setStartGoal(Point start, Point goal);
+        void updateSetVel(double current_set_vel);
         //getter
         bool isRobotPlannning();
         double getVelOut();
@@ -93,4 +96,6 @@ class PP_Planner{
         double dt_;
         bool dist_fix_;
         int predict_size_;
+        double goalyaw_threshold=0.1;
+        double yaw_adjust_omega=0.8;
 };

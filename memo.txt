@@ -14,3 +14,20 @@ std_msgs::String Goal到達時に ”goal” を出力。
 
 //オブジェクト
  /stella_stereo/obstacle_2d
+
+
+課題
+速度変更
+→1. プランナー側でROS param を毎回読みに行くいく変更
+ 2. BT側で逐次ROS paramを更新
+
+一時停止後の高回転角速度対応
+・一時停止後（Stop modeの次のwaypointに対して）のみ、角加速度を制限する
+・角度だけ調整するプランナーを実装する？→PP側でStopMode中最後にWaypointの姿勢角に合わせに行く処理を追加 
+
+BT側でTimeout後のDWAへ切り替え対応
+・ほぼ実装済み
+DWAテスト方針：
+PPで障害物にアプローチさせて、タイムアウト後にDWAがよけれるか確認
+　☆８月ごろにHILSで磯村とデバッグしてみる
+スタートの時のJoyバグ対応

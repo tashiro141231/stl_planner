@@ -44,5 +44,9 @@ class PurePursuit_ROS : PlannerBaseROS {
     time_t time_goalset;
     time_t now;
     bool waiting;
+    double V=0;
+    double W=0;
+    bool goal_reached;
+    double current_set_vel;
 };
 

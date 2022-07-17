@@ -62,6 +62,10 @@ void PP_Planner::setCurrentPosition(Point point) {
   }
 }
 
+void PP_Planner::updateSetVel(double current_set_vel){
+  set_vel_=current_set_vel;
+}
+
 
 void PP_Planner::SetParams(double v_max, double v_min, double max_acc,double stop_dec, double w_max, double w_min,double set_vel,double wp_range,double goal_range,double max_dw,double dt,double stop_vel,double look_dist,double stop_dist,double predict_time) {
   max_vel_ = v_max;
@@ -158,6 +162,21 @@ bool PP_Planner::goalCheck() {
   }
   if(goal_check)is_set_goal_ = false;
   return goal_check;
+}
+
+bool PP_Planner::goalYawCheck() {
+  double diff_goal;
+  diff_goal=goal_.theta-current_pos_.theta;
+  if(diff_goal>goalyaw_threshold){
+    current_omega_=yaw_adjust_omega;
+  }else if(diff_goal<-(goalyaw_threshold)){
+    current_omega_=-1*yaw_adjust_omega;
+  }else{}
+  return abs(diff_goal)<goalyaw_threshold;
+}
+
+double PP_Planner::diff_goalYaw() {
+    return goal_.theta-current_pos_.theta;
 }
 
 double PP_Planner::angle_correct(double theta){

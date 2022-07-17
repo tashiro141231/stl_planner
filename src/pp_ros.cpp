@@ -140,20 +140,32 @@ void PurePursuit_ROS::StopNavigationCallback(std_msgs::Bool stop_navigation){
 
 void PurePursuit_ROS::main_loop() {
   //ros::Rate loop_rate(getLoopRate());
+  ros::NodeHandle param_nh("~");
   ros::Rate loop_rate(getLoopRate());
-  double V=0;
-  double W=0;
   while(ros::ok()) {
     UpdateCurrentPosition();
     now = time(nullptr);
-    if(pp.goalCheck()&&waiting) {//ゴール判定
-      if(stop_mode_){//stop_modeの時止まる(updateVWのところでも0に近づいてるはずだが)
-        V=0;W=0;
-      }else{}//stom_mode以外でゴールした時は最後のvw維持
-      navigation_state_.data="goal";
-      ROS_INFO("goal");
-      waiting=false;
-      pub_navigation_state_.publish(navigation_state_);
+    param_nh.getParam("pp/set_vel", current_set_vel);
+    pp.updateSetVel(current_set_vel);
+    if(pp.goalCheck()&&waiting) {//ゴールしたとき
+      goal_reached=0;
+      if(stop_mode_){//stop_modeの時止まる(updateVWのところでも0に近づいてるはずだが)       
+        //姿勢角チェック,ずれてたらスピン
+        if(pp.goalYawCheck()){
+          V=0;W=0;
+          goal_reached=1;
+        }else{
+          W=pp.getOmgOut();
+        }
+      }else{//stom_mode以外でゴールした時は最後のvw維持
+        goal_reached=1;
+      }
+      if(goal_reached){
+        navigation_state_.data="goal";
+        ROS_INFO("goal");
+        waiting=false;
+        pub_navigation_state_.publish(navigation_state_);
+      }
     }else if(now-time_goalset>10&&waiting){//timeout処理.止まる.ちなゴールが置かれたら再びwaitingに戻る
       navigation_state_.data="timeout";
       waiting=false;

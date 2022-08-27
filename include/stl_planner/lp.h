@@ -19,6 +19,13 @@
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
 
+#include "nav_msgs/Path.h"
+#include <tf/transform_broadcaster.h>
+#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <tf2_ros/transform_broadcaster.h>
+
 typedef struct State {
   double x;
   double y;
@@ -80,7 +87,7 @@ class LPlanner{
         bool isRobotPlannning();
         double getVelOut();
         double getOmgOut();
-        std::vector<Point> getPath();
+        nav_msgs::Path getPath();
 
         bool stop_mode_;
         bool stop_navigation_;
@@ -139,6 +146,7 @@ class LPlanner{
         double speed_gain_ ;
         double ob_gain_ ;
         double robot_radius_ ;
+        double obx,oby,dx,dy,r;
 
 };
 

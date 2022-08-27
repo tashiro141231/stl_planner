@@ -155,6 +155,7 @@ void PurePursuit_ROS::main_loop() {
           V=0;W=0;
           goal_reached=1;
         }else{
+          V=0;
           W=pp.getOmgOut();
         }
       }else{//stom_mode以外でゴールした時は最後のvw維持

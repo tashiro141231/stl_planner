@@ -96,6 +96,6 @@ class PP_Planner{
         double dt_;
         bool dist_fix_;
         int predict_size_;
-        double goalyaw_threshold=0.1;
+        double goalyaw_threshold=0.2;
         double yaw_adjust_omega=0.8;
 };

@@ -168,9 +168,9 @@ bool PP_Planner::goalYawCheck() {
   double diff_goal;
   diff_goal=goal_.theta-current_pos_.theta;
   if(diff_goal>goalyaw_threshold){
-    current_omega_=yaw_adjust_omega;
+    current_omega_=0.5*yaw_adjust_omega;
   }else if(diff_goal<-(goalyaw_threshold)){
-    current_omega_=-1*yaw_adjust_omega;
+    current_omega_=-0.5*yaw_adjust_omega;
   }else{}
   return abs(diff_goal)<goalyaw_threshold;
 }

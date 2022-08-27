@@ -143,7 +143,7 @@ void DWA_ROS::StopNavigationCallback(std_msgs::Bool stop_navigation){
 
 void DWA_ROS::Obstacle2dCallback(const sensor_msgs::PointCloud2ConstPtr& msg){
   pcl::fromROSMsg (*msg,obstacle_2d_);
-  std::cout<<obstacle_2d_.points.size()<<std::endl;
+  //std::cout<<"obstacle2d: "<<obstacle_2d_.points.size()<<std::endl;
 }
 
 void DWA_ROS::main_loop() {
@@ -181,7 +181,8 @@ void DWA_ROS::main_loop() {
       V=0;W=0;
     }
     PubVelOmgOutput(V, W);
-    PubLocalPath(path_to_rospath(dwa.getPath(), getGlobalFrame()));
+    //PubLocalPath(path_to_rospath(dwa.getPath(), getGlobalFrame()));
+    PubLocalPath(dwa.getPath());
     ROS_INFO("V: %f ,        W: %f",V,W);
     //ROS_INFO("W: %f",W);
     ros::spinOnce();

@@ -8,7 +8,9 @@
   </node>
 
  <!-- statically connect map and odom -->
-<node pkg="tf" type="static_transform_publisher" name="map_odom_connector" args="-0.4 44 0 1.58 0 0 map odom 100" />
+<node pkg="tf" type="static_transform_publisher" name="map_odom_connector" args="-2 44.67 0 1.58 0 0 map odom 100" />
+
+<!-- <node pkg="tf" type="static_transform_publisher" name="map_odom_connector" args="21 49 0 0 0 0 map odom 100" /> -->
 
   <!-- Map server -->
   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)" />

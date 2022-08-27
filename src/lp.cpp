@@ -54,10 +54,10 @@ void LPlanner::setStartGoal(Point start, Point goal) {
 
 void LPlanner::setCurrentPosition(Point point) {
   current_pos_ = point;
-  std::cout << "Set CurrentPosition x: " << current_pos_.x << " y: " << current_pos_.y << " theta: " << current_pos_.theta * 180 / M_PI << std::endl;
+  //std::cout << "Set CurrentPosition x: " << current_pos_.x << " y: " << current_pos_.y << " theta: " << current_pos_.theta * 180 / M_PI << std::endl;
   if(is_set_goal_) {
     //std::cout << "Start x: " << start_.x << " y: " << start_.y << " theta: " << start_.theta * 180 / M_PI << std::endl;
-    std::cout << "Goal x: " << goal_.x << " y: " << goal_.y << " theta: " << goal_.theta * 180 / M_PI << std::endl;
+    //std::cout << "Goal x: " << goal_.x << " y: " << goal_.y << " theta: " << goal_.theta * 180 / M_PI << std::endl;
   }
 }
 
@@ -169,7 +169,7 @@ DW LPlanner::calc_dynamic_window(State state){
         state.w + max_dw_ * dt_};
     
     //[vmin,vmax, yawrate min, yawrate max]
-    std::cout<<"state="<<state.v<<", max_acc_"<< max_acc_<<", dt_"<< dt_<<std::endl;
+    //std::cout<<"state="<<state.v<<", max_acc_"<< max_acc_<<", dt_"<< dt_<<std::endl;
    DW dw = {std::max(Vs[0], Vd[0]), std::min(Vs[1], Vd[1]),
          std::max(Vs[2], Vd[2]), std::min(Vs[3], Vd[3])};
   return dw;
@@ -257,18 +257,47 @@ void LPlanner::calc_path_dwa(State state, DW dw, Point goal,std::vector<dNode> o
     buff.theta = best_traj[i].yaw;
     path.push_back(buff);
   }
+  //std::cout<<"collision"<<collision_<<std::endl;
   current_vel_ = v_min_;
   current_omega_ = w_min_;
   current_path_=path;
 }
 
-std::vector<Point> LPlanner::getPath(){
-  return current_path_;
+nav_msgs::Path LPlanner::getPath(){
+  //return current_path_;
+  nav_msgs::Path path;
+  geometry_msgs::PoseStamped pose;
+  double x,y,theta,predict_size_;
+  predict_size_=(1/dt_)*predict_time_;
+  x=0;y=0;theta=0;
+  //x=current_pos_.x;y=current_pos_.y;theta=current_pos_.theta;
+  path.header.frame_id="/base_link";
+  //path.header.frame_id="/map";
+  path.header.stamp=ros::Time::now();
+  path.poses.resize(predict_size_);
+  geometry_msgs::Quaternion geometry_quat;
+  tf::Quaternion quat;
+  for(int i=0;i<predict_size_;i++){
+    x+=current_vel_*dt_*cos(theta);
+    y+=current_vel_*dt_*sin(theta);
+    theta+=current_omega_*dt_;
+    /*
+    quat = tf::createQuaternionFromRPY(0,0,theta);
+    quaternionTFToMsg(quat,geometry_quat);
+    pose.pose.position.x=x;
+    pose.pose.position.y=y;
+    pose.pose.orientation = geometry_quat;
+    path.poses.push_back(pose);
+    */
+    path.poses[i].pose.position.x=x;
+    path.poses[i].pose.position.y=y;
+  }
+  return path;
 }
 
 
 double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<dNode> ob){
-  int skip_n = 2;
+  int skip_n = 1;
   float inf = std::numeric_limits<float>::infinity();
   inf = 100000;
   double minr = inf;
@@ -287,19 +316,34 @@ double LPlanner::calc_obstacle_cost(std::vector<State> traj, std::vector<dNode> 
 
     //obstacle_2d_から計算
     for(int i=0;i<obstacle_2d_.points.size();i++){
-      double dx = traj[ii].x-obstacle_2d_.points[i].x;
-      double dy = traj[ii].y-obstacle_2d_.points[i].y;
-
-      double r = sqrt(std::pow(dx,2)+std::pow(dy,2));
+      //double dx = traj[ii].x-obstacle_2d_.points[i].x;
+      //double dy = traj[ii].y-obstacle_2d_.points[i].y;
+      obx,oby;
+      obx=obstacle_2d_.points[i].x*cos(current_pos_.theta)-obstacle_2d_.points[i].y*sin(current_pos_.theta)+current_pos_.x;
+      oby=obstacle_2d_.points[i].x*sin(current_pos_.theta)+obstacle_2d_.points[i].y*cos(current_pos_.theta)+current_pos_.y;
+      dx = traj[ii].x-obx;
+      dy = traj[ii].y-oby;
+      //double trajx,trajy;
+      //trajx=traj[ii].x*cos(-current_pos_.theta)-traj[ii].y*sin(-current_pos_.theta)-current_pos_.x;
+      //trajy=traj[ii].x*sin(-current_pos_.theta)+traj[ii].y*cos(-current_pos_.theta)-current_pos_.y;
+      //double dx = trajx-obstacle_2d_.points[i].x;
+      //double dy = trajy-obstacle_2d_.points[i].y;
+      r = sqrt(std::pow(dx,2)+std::pow(dy,2));
+      //std::cout<<"traj: "<<trajx<<","<<trajy<<std::endl;
+      //std::cout<<"current: "<<current_pos_.x<<","<<current_pos_.y<<","<<current_pos_.theta<<std::endl;
+      //std::cout<<"traj"<<traj[ii].x<<","<<traj[ii].y<<std::endl;
       if(minr>=r){
         minr =r;
+        //std::cout<<"minr"<<minr<<std::endl;
       } else{}
     }
 
   }
   if(minr<robot_radius_){
+  //std::cout<<"minr"<<minr<<std::endl;
+  //if(minr<5){
     collision_ = 1;
-    return inf;
+    return 1000;
   }else{}
   if(minr>=100)
   return 0;
@@ -363,7 +407,7 @@ bool LPlanner::goalCheck() {
   return false;*/
   bool goal_check =false;
   bool overtake =false;
-  double range_=1.0;
+  double range_=1.5;
   if(stop_mode_)range_=0.25;
   if(is_set_goal_) {
     double dis = hypot((current_pos_.x - goal_.x), (current_pos_.y - goal_.y));
@@ -425,5 +469,8 @@ void LPlanner::set_obstacle(pcl::PointCloud<pcl::PointXYZ> obstacle_2d){
     obstacle_2d_.points[i].x=obstacle_2d.points[i].x;
     obstacle_2d_.points[i].y=obstacle_2d.points[i].y;
     obstacle_2d_.points[i].z=obstacle_2d.points[i].z;
+    //if(abs(obstacle_2d_.points[i].y)>0.4)obstacle_2d_.points[i].y=1000;
+    //std::cout<<"x,y="<<obstacle_2d_.points[i].x<<","<<obstacle_2d_.points[i].y<<std::endl;
   }
+
 }

@@ -1,0 +1,17 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="map_file" default="$(find stl_planner)/maps/map.yaml"/>
+
+  <!-- move_base -->
+  <node pkg="stl_planner" name="dwa_ros" type="dwa_ros" output="screen">
+    <rosparam command="load" file="$(find stl_planner)/config/stl_planner_config.yaml"/>
+  </node>
+
+ <!-- statically connect map and odom -->
+ <node pkg="tf" type="static_transform_publisher" name="map_odom_connector" args="-2.3 44.67 0 1.58 0 0 map odom 100" />
+
+ <!-- <node pkg="tf" type="static_transform_publisher" name="map_odom_connector" args="21 49 0 0 0 0 map odom 100" /> -->
+
+  <!-- Map server -->
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+</launch>
